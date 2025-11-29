@@ -1,0 +1,31 @@
+{
+  "include": [
+    "./src/client/**/*.ts",
+    "./src/client/**/*.tsx",
+    "./src/lib/**/*.ts",
+    "./src/lib/**/*.d.ts",
+    "./src/lib/**/*.js",
+  ],
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es5",
+    "lib": [
+      "dom",
+      "es2015"
+    ],
+    "jsx": "react-jsx",
+    /* Modules */
+    "module": "es6",
+    "moduleResolution": "node",
+    /* Emit */
+    "outDir": "build/client",
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": false,
+    /* Type Checking */
+    "strict": true,
+    "strictNullChecks": true,
+    /* Completeness */
+    "skipLibCheck": true
+  }
+}

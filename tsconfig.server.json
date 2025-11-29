@@ -1,0 +1,28 @@
+{
+  "include":["./src/*.ts", "./src/*.tsx", "./src/server/**/*.ts", "./src/server/**/*.tsx"],
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es5",
+    "lib": ["dom", "es2015"],
+    "jsx": "react",
+
+    /* Modules */
+    "module": "commonjs",
+
+    "moduleResolution": "node",
+
+    /* Emit */
+    "outDir": "build",
+
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": false,
+
+    /* Type Checking */
+    "strict": true,
+    "strictNullChecks": true,
+
+    /* Completeness */
+     "skipLibCheck": true
+  }
+}

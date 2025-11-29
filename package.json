@@ -4,6 +4,11 @@
   "description": "Time tracking / kanban app with synchronization to Emacs org-mode",
   "main": "index.js",
   "scripts": {
+    "build-client": "webpack",
+    "build-server": "tsc -p tsconfig.server.json",
+    "build": "npm run build-server && npm run build-client",
+    "freshrun": "rm storage/* ; node build/app.js",
+    "start": "node build/app.js",
     "test": "jest"
   },
   "keywords": [
@@ -17,6 +22,8 @@
     "@types/express": "^5.0.5",
     "@types/express-ws": "^3.0.6",
     "@types/jest": "^30.0.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "@types/sqlite3": "^5.1.0",
     "enzyme": "^3.11.0",
     "jest": "^30.2.0",
