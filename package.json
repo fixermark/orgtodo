@@ -24,7 +24,6 @@
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@types/sqlite3": "^5.1.0",
     "enzyme": "^3.11.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.5",
@@ -38,6 +37,7 @@
     "express": "^5.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   }
 }

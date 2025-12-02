@@ -1,0 +1,26 @@
+.chips {
+  display: flex;
+  flex-flow: row wrap;
+  width: 100%;
+  justify-content: space-evenly;
+}
+
+.chip {
+  width: 40%;
+  margin: 10px;
+  padding: 5px;
+  border: black 2px solid;
+  border-radius: 15px 0px 15px 0px;
+}
+
+.chip > .headline {
+  font-size: 24pt;
+  font-weight: bold;
+  align: center;
+}
+
+.chip > .taskId {
+  color: #999999;
+  font-size: 7pt;
+}
+

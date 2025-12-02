@@ -6,6 +6,8 @@
 import express from 'express';
 import path from 'path';
 import 'process';
+import { readEntries, replaceEntries } from './db/Db';
+import { parse } from './orgdata/Parser';
 
 const server = express();
 server.use(express.text({type: "*/*"}));
@@ -17,9 +19,24 @@ server.use(express.static((frontendJsPath)));
 
 server.use("/public", express.static((frontendPublicPath)));
 
+server.get("/tasks", async (req, res) => {
+  const entries = await readEntries();
+
+  res.json(entries);
+});
+
+server.put("/tasks", express.text(), async (req, res) => {
+  const entries = parse(req.body);
+
+  replaceEntries(entries);
+
+  res.sendStatus(200);
+});
+
 server.get("/", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../public/index.html"));
 });
+
 
 const MAYBE_PORT = Number(process.env.PORT);
 
