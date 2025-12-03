@@ -4,6 +4,7 @@
 export interface EntryProperties {
   id: string;
   headline: string;
+  priority: number;
   body: string;
 }
 
@@ -11,7 +12,7 @@ export interface EntryProperties {
 /** A single Entry in the time tracker and its summary */
 export interface Entry {
   summary: EntryProperties;
-  fulltext: string; //< The full text of the entry, including headline.
+  fulltext: string[]; //< The full text of the entry, including headline.
 }
 
 export function newId(): string {

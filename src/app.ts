@@ -6,7 +6,7 @@
 import express from 'express';
 import path from 'path';
 import 'process';
-import { readEntries, replaceEntries } from './db/Db';
+import { readEntries, replaceEntries, topqueue} from './db/Db';
 import { parse } from './orgdata/Parser';
 
 const server = express();
@@ -18,6 +18,21 @@ const frontendPublicPath = path.resolve(__dirname, '../public');
 server.use(express.static((frontendJsPath)));
 
 server.use("/public", express.static((frontendPublicPath)));
+
+server.post("/tasks/:taskid", async (req,res) => {
+  if (!req.query.priority) {
+    res.status(400).send("'priority' parameter required");
+    return
+  }
+  if (req.query.priority !== "topqueue") {
+    res.status(400).send(`Unrecognized priority parameter ${req.query.priority}`);
+    return
+  }
+
+  await topqueue(req.params.taskid);
+
+  res.sendStatus(200);
+});
 
 server.get("/tasks", async (req, res) => {
   const entries = await readEntries();

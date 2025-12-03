@@ -20,7 +20,7 @@ export const App = () => {
     const fetchData = async () => {
       const response = await fetch('/tasks');
       if (!response.ok) {
-	throw new Error(`Failed to fetch: {response.status}`);
+	throw new Error(`Failed to fetch: ${response.status}`);
       }
       setEntries((await response.json()) as Entry[]);
       setShowOrgImporter(false);
@@ -28,6 +28,18 @@ export const App = () => {
 
     fetchData();
   }, [setEntries, setShowOrgImporter]);
+
+  const onTopqueue = useCallback((id: string) => {
+    const topqueue = async () => {
+      const response = await fetch(`/tasks/${id}?priority=topqueue`, {method: 'POST'});
+      if (!response.ok) {
+	throw new Error(`Failed to topqueue: ${response.status}`);
+      }
+      onRefreshEntries();
+    };
+
+    topqueue();
+  }, [onRefreshEntries]);
 
   const onClickShowOrgImporter = useCallback(() => setShowOrgImporter(true), [setShowOrgImporter]);
 
@@ -43,6 +55,9 @@ export const App = () => {
             <div className="headline">{entry.summary.headline}</div>
 	    <div className="taskId">{entry.summary.id}</div>
             <div className="fulltext"><pre>{entry.summary.body}</pre></div>
+	    <div className="buttonPanel">
+              <button onClick={() => onTopqueue(entry.summary.id)}>&#x219F;</button>
+            </div>
 	  </div>
 	)}
       </div>
