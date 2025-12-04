@@ -28,7 +28,7 @@ async function connection(): Promise<sqlite.Database> {
 }
 
 /** Parse the full text of an entry into the entry. */
-function fulltextToEntry(fulltext: string): Entry {
+export function fulltextToEntry(fulltext: string): Entry {
   return parseEntry(fulltext.split("\n").map((line: string) => line + "\n"));
 }
 
@@ -78,4 +78,18 @@ export async function setTodoStatus(entryId: string, status: TodoStatus): Promis
   parseSetTodoStatus(entry.fulltext, status);
 
   await db.run("UPDATE tasks SET fulltext=? WHERE ID=?", [entry.fulltext.join(""), entryId]);
+}
+
+/** Add new entry at topqueue location. */
+export async function addTask(entry: Entry): Promise<void> {
+  const db = await connection();
+
+  const topPriority = (await db.get("SELECT priority FROM tasks ORDER BY priority ASC LIMIT 1")).priority;
+
+  const newPriority = topPriority - 1;
+
+  setPriority(entry.fulltext, newPriority);
+
+  await db.run("INSERT INTO tasks (id, priority, fulltext) VALUES (?,?,?)", [entry.summary.id, newPriority, entry.fulltext.join("")]);
+
 }

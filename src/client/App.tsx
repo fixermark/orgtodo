@@ -6,6 +6,7 @@
 import {parse} from "../orgdata/Parser";
 import {Entry, TodoStatus} from "../orgdata/Entry";
 import {OrgImporter} from "./OrgImporter";
+import {NewTask } from "./NewTask";
 import 'react';
 
 import {useEffect, useState, useCallback} from 'react';
@@ -26,6 +27,8 @@ export const App = () => {
 
   const [showOrgImporter, setShowOrgImporter] = useState<boolean>(false);
 
+  const [showNewTask, setShowNewTask] = useState<boolean>(false);
+
   const onRefreshEntries = useCallback(() => {
     const fetchData = async () => {
       const response = await fetch('/tasks');
@@ -34,10 +37,11 @@ export const App = () => {
       }
       setEntries((await response.json()) as Entry[]);
       setShowOrgImporter(false);
+      setShowNewTask(false);
     };
 
     fetchData();
-  }, [setEntries, setShowOrgImporter]);
+  }, [setEntries, setShowOrgImporter, setShowNewTask]);
 
   const onToggleTodo = useCallback((id: string, newValue: TodoStatus) => {
     const toggleTodo = async () => {
@@ -66,6 +70,7 @@ export const App = () => {
   }, [onRefreshEntries]);
 
   const onClickShowOrgImporter = useCallback(() => setShowOrgImporter(true), [setShowOrgImporter]);
+  const onClickShowNewTask = useCallback(() => setShowNewTask(true), [setShowNewTask]);
 
   useEffect(() => {
     onRefreshEntries();
@@ -92,10 +97,16 @@ export const App = () => {
 	)}
       </div>
       <div>
+	<button onClick={onClickShowNewTask}>New Task</button>
+      </div>
+      <div>
 	<button onClick={onClickShowOrgImporter}>Import from org</button>
       </div>
       <div>
 	{showOrgImporter && <OrgImporter onRefreshEntries={onRefreshEntries}/>}
+      </div>
+      <div>
+	{showNewTask && <NewTask onRefreshEntries={onRefreshEntries}/>}
       </div>
     </div>
   );

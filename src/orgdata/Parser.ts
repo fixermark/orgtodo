@@ -9,7 +9,7 @@ enum ParseFSM {
   SCANNIG_HEADLINE=2,
 }
 
-const HEADLINE_PATTERN = /^\*+ (TODO|DONE)? (.*)\n/;
+const HEADLINE_PATTERN = /^\*+ (TODO |DONE )?(.*)\n/;
 
 const PROPERTIES_PATTERN = /^:PROPERTIES:\n/;
 const PROPERTY_PATTERN = /^:([-_A-Za-z0-9]+): +(.*)\n/;
@@ -105,7 +105,7 @@ export function setTodoStatus(content: string[], value: TodoStatus) {
       break;
   }
 
-  const headlineMatcher = /(\*+) +(TODO|DONE)? +(.*)\n/;
+  const headlineMatcher = /(\*+) +(TODO |DONE )? *(.*)\n/;
   const updated = content[0].replace(headlineMatcher, `$1 ${statusString} $3\n`);
   content[0] = updated;
 }
@@ -124,7 +124,7 @@ export function parseEntry(content: string[]): Entry {
   const headline = headlineParse[2];
   let todoState = TodoStatus.NONE;
   if (headlineParse[1]) {
-    todoState = headlineParse[1] == "DONE" ? TodoStatus.DONE : TodoStatus.TODO;
+    todoState = headlineParse[1] == "DONE " ? TodoStatus.DONE : TodoStatus.TODO;
   }
 
   let priority: number | undefined = undefined;

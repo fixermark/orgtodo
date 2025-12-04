@@ -4,7 +4,9 @@ import express from 'express';
 
 import {TodoStatus} from './orgdata/Entry';
 
-import {topqueue, setTodoStatus} from './db/Db';
+import {parseEntry} from './orgdata/Parser';
+
+import {fulltextToEntry, topqueue, setTodoStatus, addTask} from './db/Db';
 
 /** Handle a request to set TODO state of a task. */
 async function handleSetTaskTodo(req: express.Request, res: express.Response): Promise<void> {
@@ -49,4 +51,13 @@ export async function handleTaskPost(req: express.Request, res: express.Response
   }
 
   res.status(400).send("One of 'priority' or 'todo' parameter required");
+}
+
+/** Handle creating a new task. */
+export async function handleNewTask(req: express.Request, res: express.Response): Promise<void> {
+  const entry = fulltextToEntry(req.body);
+
+  await addTask(entry);
+
+  res.sendStatus(200);
 }

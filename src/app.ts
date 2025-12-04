@@ -8,7 +8,7 @@ import path from 'path';
 import 'process';
 import { readEntries, replaceEntries, topqueue} from './db/Db';
 import { parse } from './orgdata/Parser';
-import { handleTaskPost } from './handlers';
+import { handleTaskPost, handleNewTask } from './handlers';
 
 const server = express();
 server.use(express.text({type: "*/*"}));
@@ -27,6 +27,8 @@ server.get("/tasks", async (req, res) => {
 
   res.json(entries);
 });
+
+server.post("/tasks", express.text(), handleNewTask);
 
 server.put("/tasks", express.text(), async (req, res) => {
   const entries = parse(req.body);
