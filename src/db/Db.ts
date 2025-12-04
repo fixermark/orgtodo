@@ -3,8 +3,8 @@
  * Licensed under the MIT License (https://opensource.org/licenses/MIT)
  */
 
-import {Entry} from "../orgdata/Entry";
-import {parse, parseEntry, setPriority} from "../orgdata/Parser";
+import {Entry, TodoStatus} from "../orgdata/Entry";
+import {parse, parseEntry, setPriority, setTodoStatus as parseSetTodoStatus} from "../orgdata/Parser";
 import * as sqlite from "sqlite";
 import { Database } from "sqlite3";
 import * as fs from "fs";
@@ -65,4 +65,17 @@ export async function topqueue(entryId: string): Promise<void> {
   setPriority(entry.fulltext, topPriority - 1);
 
   await db.run("UPDATE tasks SET priority=?, fulltext=? WHERE ID=?", [topPriority - 1, entry.fulltext.join(""), entryId]);
+}
+
+/** Set status of TODO on task */
+export async function setTodoStatus(entryId: string, status: TodoStatus): Promise<void> {
+  const db = await connection();
+
+  const entryText = (await db.get("SELECT fulltext FROM tasks WHERE id=?", [entryId])).fulltext;
+
+  const entry = fulltextToEntry(entryText);
+
+  parseSetTodoStatus(entry.fulltext, status);
+
+  await db.run("UPDATE tasks SET fulltext=? WHERE ID=?", [entry.fulltext.join(""), entryId]);
 }

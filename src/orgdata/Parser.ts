@@ -1,6 +1,6 @@
 /** Parser for org headlines */
 
-import {Entry, EntryProperties, newId} from './Entry';
+import {Entry, EntryProperties, newId, TodoStatus} from './Entry';
 
 export type OptionalEntryProps = Partial<EntryProperties>;
 
@@ -9,7 +9,7 @@ enum ParseFSM {
   SCANNIG_HEADLINE=2,
 }
 
-const HEADLINE_PATTERN = /^\*+ (.*)/;
+const HEADLINE_PATTERN = /^\*+ (TODO|DONE)? (.*)\n/;
 
 const PROPERTIES_PATTERN = /^:PROPERTIES:\n/;
 const PROPERTY_PATTERN = /^:([-_A-Za-z0-9]+): +(.*)\n/;
@@ -93,11 +93,38 @@ export function setPriority(content: string[], value: number) {
   setProperty(content, "TimeTrackerPriority", value.toString());
 }
 
+/** Set the TODO status on the specified fulltext. */
+export function setTodoStatus(content: string[], value: TodoStatus) {
+  let statusString = "";
+  switch(value) {
+    case TodoStatus.TODO:
+      statusString = "TODO";
+      break;
+    case TodoStatus.DONE:
+      statusString = "DONE";
+      break;
+  }
+
+  const headlineMatcher = /(\*+) +(TODO|DONE)? +(.*)\n/;
+  const updated = content[0].replace(headlineMatcher, `$1 ${statusString} $3\n`);
+  content[0] = updated;
+}
+
 /** Build one entry from a list of the text lines in the entry. */
 export function parseEntry(content: string[]): Entry {
   console.log("Parsing entry...");
   if (!content.length) {
     throw new Error("Cannot parse entry: no lines to parse.");
+  }
+
+  const headlineParse = HEADLINE_PATTERN.exec(content[0]);
+  if (!headlineParse) {
+    throw new Error(`Headline '${content[0]}' was malformed.`);
+  }
+  const headline = headlineParse[2];
+  let todoState = TodoStatus.NONE;
+  if (headlineParse[1]) {
+    todoState = headlineParse[1] == "DONE" ? TodoStatus.DONE : TodoStatus.TODO;
   }
 
   let priority: number | undefined = undefined;
@@ -143,7 +170,8 @@ export function parseEntry(content: string[]): Entry {
   return {
     summary: {
       id: entryId,
-      headline: HEADLINE_PATTERN.exec(content[0].trim())![1],
+      headline: headline,
+      todo: todoState,
       body: bodyLines.join(""),
       priority: priority === undefined ? -1 : priority,
     },

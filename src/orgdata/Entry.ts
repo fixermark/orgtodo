@@ -1,8 +1,15 @@
 /** Org entries */
 
+export enum TodoStatus {
+  NONE = 1,
+  TODO,
+  DONE,
+};
+
 /** Properties that summarize an entry */
 export interface EntryProperties {
   id: string;
+  todo: TodoStatus;
   headline: string;
   priority: number;
   body: string;
