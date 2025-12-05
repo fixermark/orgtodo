@@ -33,4 +33,5 @@ cd /opt/app
 # express.js has fewer problems when HOME is defined
 export HOME=/opt/app
 
-npm start
+export NPM_CONFIG_CACHE=/var/npm-cache
+npm start --logs-dir=/var/npm-logs --loglevel verbose 2>&1

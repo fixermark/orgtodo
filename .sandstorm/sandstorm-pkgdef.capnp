@@ -19,9 +19,9 @@ const pkgdef :Spk.PackageDefinition = (
 
     appTitle = (defaultText = "Org Time Tracker"),
 
-    appVersion = 0,  # Increment this for every release.
+    appVersion = 9,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "0.0.1"),
+    appMarketingVersion = (defaultText = "0.0.1a9"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 
@@ -92,7 +92,7 @@ const pkgdef :Spk.PackageDefinition = (
         # Further details including how to set up GPG and how to use keybase.io can be found
         # at https://docs.sandstorm.io/en/latest/developing/publishing-apps/#verify-your-identity
 
-        upstreamAuthor = "Example App Team",
+        # upstreamAuthor = "Example App Team",
         # Name of the original primary author of this app, if it is different from the person who
         # produced the Sandstorm package. Setting this implies that the author connected to the PGP
         # signature only "packaged" the app for Sandstorm, rather than developing the app.
@@ -156,7 +156,7 @@ const pkgdef :Spk.PackageDefinition = (
   # `spk dev` will write a list of all the files your app uses to this file.
   # You should review it later, before shipping your app.
 
-  alwaysInclude = [],
+  alwaysInclude = ["opt/app/node_modules", "usr/lib/node_modules"],
   # Fill this list with more names of files or directories that should be
   # included in your package, even if not listed in sandstorm-files.list.
   # Use this to force-include stuff that you know you need but which may
