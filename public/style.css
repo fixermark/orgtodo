@@ -36,3 +36,6 @@
   font-size: 7pt;
 }
 
+.chip > .fulltext > pre {
+  white-space: pre-wrap;
+}
