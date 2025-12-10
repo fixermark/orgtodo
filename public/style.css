@@ -39,3 +39,9 @@
 .chip > .fulltext > pre {
   white-space: pre-wrap;
 }
+
+.chip > .buttonPanel > button {
+  margin: 5px;
+  min-height: 25px;
+  min-width: 25px;
+}
