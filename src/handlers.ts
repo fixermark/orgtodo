@@ -6,7 +6,7 @@ import {TodoStatus} from './orgdata/Entry';
 
 import {parseEntry} from './orgdata/Parser';
 
-import {fulltextToEntry, topqueue, setTodoStatus, addTask} from './db/Db';
+import {fulltextToEntry, topqueue, bury, setTodoStatus, bumpPriority, PriorityBump, addTask} from './db/Db';
 
 /** Handle a request to set TODO state of a task. */
 async function handleSetTaskTodo(req: express.Request, res: express.Response): Promise<void> {
@@ -26,12 +26,24 @@ async function handleSetTaskTodo(req: express.Request, res: express.Response): P
 
 /** Handle a request to change priority of a task. */
 async function handleChangeTaskPriority(req: express.Request, res: express.Response): Promise<void> {
-  if (req.query.priority !== "topqueue") {
-    res.status(400).send(`Unrecognized priority parameter ${req.query.priority}`);
-    return
+  switch (req.query.priority) {
+    case "topqueue":
+      await topqueue(req.params.taskid);
+      break;
+    case "bury":
+      await bury(req.params.taskid);
+      break;
+    case "up1":
+      await bumpPriority(req.params.taskid, PriorityBump.HIGHER);
+      break;
+    case "down1":
+      await bumpPriority(req.params.taskid, PriorityBump.LOWER);
+      break;
+    default:
+      res.status(400).send(`Unrecognized priority parameter ${req.query.priority}`);
+      return;
   }
 
-  await topqueue(req.params.taskid);
 
   res.sendStatus(200);
 

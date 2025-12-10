@@ -11,6 +11,8 @@ import 'react';
 
 import {useEffect, useState, useCallback} from 'react';
 
+type PriorityOperations = "topqueue" | "up1" | "down1" | "bury";
+
 /** Compute class name for the TODO line */
 function todoClassName(entry: Entry): string {
   return `todoline ${entry.summary.todo === TodoStatus.DONE ? "todo-done" : "todo-todo"}`;
@@ -57,16 +59,16 @@ export const App = () => {
     toggleTodo();
   }, [onRefreshEntries]);
 
-  const onTopqueue = useCallback((id: string) => {
-    const topqueue = async () => {
-      const response = await fetch(`/tasks/${id}?priority=topqueue`, {method: 'POST'});
+  const onSetPriority = useCallback((id: string, operation: PriorityOperations) => {
+    const setPriority = async () => {
+      const response = await fetch(`/tasks/${id}?priority=${operation}`, {method: 'POST'});
       if (!response.ok) {
-	throw new Error(`Failed to topqueue: ${response.status}`);
+	throw new Error(`Failed to set priority: ${response.status}`);
       }
       onRefreshEntries();
     };
 
-    topqueue();
+    setPriority();
   }, [onRefreshEntries]);
 
   const onClickShowOrgImporter = useCallback(() => setShowOrgImporter(true), [setShowOrgImporter]);
@@ -91,7 +93,10 @@ export const App = () => {
 	    <div className="taskId">{entry.summary.id}</div>
             <div className="fulltext"><pre>{entry.summary.body}</pre></div>
 	    <div className="buttonPanel">
-              <button onClick={() => onTopqueue(entry.summary.id)}>&#x219F;</button>
+              <button onClick={() => onSetPriority(entry.summary.id, "topqueue")}>&#x219F;</button>
+              <button onClick={() => onSetPriority(entry.summary.id, "up1")}>&#x2191;</button>
+              <button onClick={() => onSetPriority(entry.summary.id, "down1")}>&#x2193;</button>
+              <button onClick={() => onSetPriority(entry.summary.id, "bury")}>&#x21A1;</button>
             </div>
 	  </div>
 	)}
