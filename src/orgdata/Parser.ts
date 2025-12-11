@@ -11,11 +11,65 @@ enum ParseFSM {
 
 const HEADLINE_PATTERN = /^\*+ (TODO |DONE )?(.*)\n/;
 
+export const DATETIME_PATTERN = /((\d{4})-(\d{2})-(\d{2})) (Mon|Tue|Wed|Thu|Fri|Sat|Sun)( ((\d{2}):(\d{2})))?/;
+
+export enum DatetimeFields {
+  DATE=1,
+  YEAR=2,
+  MONTH=3,
+  DAY=4,
+  DOW=5,
+  SPACED_TIME=6,
+  TIME=7,
+  HOUR=8,
+  MINUTE=9
+}
+
+export const DEADLINE_PATTERN = new RegExp(`^DEADLINE: <(${DATETIME_PATTERN.source})>`);
+
 const PROPERTIES_PATTERN = /^:PROPERTIES:\n/;
 const PROPERTY_PATTERN = /^:([-_A-Za-z0-9]+): +(.*)\n/;
 const DRAWER_PATTERN = /^:([-_A-Za-z0-9]+):\n/;
 const END_PATTERN = /^:END:\n/;
 
+const DAY_OF_WEEK_ORG_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** Convert an Org datetime string into a JavaScript datetime. */
+export function orgDatetimeToJs(orgDt: string): Date {
+  const result = DATETIME_PATTERN.exec(orgDt);
+
+  if (!result) {
+    throw new Error(`${orgDt} is not a datetime`);
+  }
+
+  const year = parseInt(result[DatetimeFields.YEAR]);
+  const month = parseInt(result[DatetimeFields.MONTH]);
+  const day = parseInt(result[DatetimeFields.DAY]);
+
+  let hour = 0;
+  let minute = 0;
+
+  if (result[DatetimeFields.HOUR] !== undefined) {
+    hour = parseInt(result[DatetimeFields.HOUR]);
+    minute = parseInt(result[DatetimeFields.MINUTE]);
+  }
+
+  return new Date(year, month - 1, day, hour, minute);
+}
+
+/** Convert a Date object to an org datetime. */
+export function jsDatetimeToOrg(jsDt: Date): string {
+  const dateString = (`${jsDt.getFullYear()}-${(jsDt.getMonth() + 1).toString().padStart(2, '0')}-` +
+    `${jsDt.getDate().toString().padStart(2, '0')} ${DAY_OF_WEEK_ORG_NAMES[jsDt.getDay()]}`);
+
+  if (!jsDt.getHours() && !jsDt.getMinutes()) {
+    return dateString;
+  }
+
+  return dateString + ` ${jsDt.getHours().toString().padStart(2, '0')}:${jsDt.getMinutes().toString().padStart(2, '0')}`;
+}
+
+/** Return true if the given line is a headline. */
 function isHeadline(line: string): boolean {
   return HEADLINE_PATTERN.test(line);
 }

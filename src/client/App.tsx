@@ -8,6 +8,7 @@ import {Entry, TodoStatus} from "../orgdata/Entry";
 import {OrgImporter} from "./OrgImporter";
 import {NewTask } from "./NewTask";
 import 'react';
+import {withErrorBoundary, useErrorBoundary} from 'react-use-error-boundary';
 
 import {useEffect, useState, useCallback} from 'react';
 
@@ -23,7 +24,17 @@ function todoText(entry: Entry): string {
   return entry.summary.todo === TodoStatus.DONE ? "DONE" : "TODO";
 }
 
+function messageForError(err: unknown): string | undefined {
+  if (typeof err === "undefined") {
+    return undefined;
+  }
+  return (err as Error).message;
+}
+
 export const App = () => {
+
+  const [error, resetError] = useErrorBoundary(
+    (error, errorInfo) => console.error(error));
 
   const [entries, setEntries] = useState<Entry[]>([]);
 
@@ -71,16 +82,22 @@ export const App = () => {
     setPriority();
   }, [onRefreshEntries]);
 
-  const onClickShowOrgImporter = useCallback(() => setShowOrgImporter(true), [setShowOrgImporter]);
-  const onClickShowNewTask = useCallback(() => setShowNewTask(true), [setShowNewTask]);
+  const onClickShowOrgImporter = useCallback(() => setShowOrgImporter(!showOrgImporter), [showOrgImporter, setShowOrgImporter]);
+  const onClickShowNewTask = useCallback(() => setShowNewTask(!showNewTask), [showNewTask, setShowNewTask]);
 
   useEffect(() => {
     onRefreshEntries();
   }, []);
 
 
+  const errMsg = messageForError(error);
+
   return (
     <div>
+      { errMsg && <div className="error-banner">
+		  {errMsg} <button onClick={resetError}>X</button>
+		  </div>
+      }
       <div className="chips">
 	{!entries.length ? "No entries." : entries.map((entry) =>
 	  <div className="chip">
