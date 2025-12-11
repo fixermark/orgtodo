@@ -11,6 +11,7 @@ export interface EntryProperties {
   id: string;
   todo: TodoStatus;
   headline: string;
+  deadline: Date | undefined;
   priority: number;
   body: string;
 }

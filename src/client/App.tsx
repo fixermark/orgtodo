@@ -3,7 +3,7 @@
  * Licensed under the MIT License (https://opensource.org/licenses/MIT)
  */
 
-import {parse} from "../orgdata/Parser";
+import {fulltextToLines, parse, getDeadline} from "../orgdata/Parser";
 import {Entry, TodoStatus} from "../orgdata/Entry";
 import {OrgImporter} from "./OrgImporter";
 import {NewTask } from "./NewTask";
@@ -17,6 +17,19 @@ type PriorityOperations = "topqueue" | "up1" | "down1" | "bury";
 /** Compute class name for the TODO line */
 function todoClassName(entry: Entry): string {
   return `todoline ${entry.summary.todo === TodoStatus.DONE ? "todo-done" : "todo-todo"}`;
+}
+
+/** Marshalls the JSON over the wire properly into an Entry object. */
+function marshallEntryJson(entry: any): Entry {
+  entry.summary.deadline = getDeadline(entry.fulltext);
+  return entry as Entry;
+}
+
+function formatDeadline(deadline: Date): string {
+  if (!deadline.getHours() && !deadline.getMinutes()) {
+    return deadline.toDateString();
+  }
+  return deadline.toString();
 }
 
 /** Compute  text for the TODO line */
@@ -48,7 +61,7 @@ export const App = () => {
       if (!response.ok) {
 	throw new Error(`Failed to fetch: ${response.status}`);
       }
-      setEntries((await response.json()) as Entry[]);
+      setEntries((await response.json()).map((entry: any) => marshallEntryJson(entry)));
       setShowOrgImporter(false);
       setShowNewTask(false);
     };
@@ -108,6 +121,7 @@ export const App = () => {
             </div>
             <div className="headline">{entry.summary.headline}</div>
 	    <div className="taskId">{entry.summary.id}</div>
+	    {entry.summary.deadline && <div className="deadline">Deadline: {formatDeadline(entry.summary.deadline)}</div>}
             <div className="fulltext"><pre>{entry.summary.body}</pre></div>
 	    <div className="buttonPanel">
               <button onClick={() => onSetPriority(entry.summary.id, "topqueue")}>&#x219F;</button>

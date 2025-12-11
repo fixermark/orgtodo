@@ -4,7 +4,13 @@
  */
 
 import {Entry, TodoStatus} from "../orgdata/Entry";
-import {parse, parseEntry, setPriority, setTodoStatus as parseSetTodoStatus} from "../orgdata/Parser";
+import {
+  fulltextToLines,
+  parse,
+  parseEntry,
+  setPriority,
+  setTodoStatus as parseSetTodoStatus
+} from "../orgdata/Parser";
 import * as sqlite from "sqlite";
 import { Database } from "sqlite3";
 import * as fs from "fs";
@@ -37,11 +43,6 @@ async function connection(): Promise<sqlite.Database> {
   return await sqlite.open({filename: DB_PATH, driver: Database});
 }
 
-
-/** Split out full text into individual lines */
-function fulltextToLines(fulltext: string): string[] {
-  return fulltext.split("\n").map((line: string) => line + "\n");
-}
 
 /** Parse the full text of an entry into the entry. */
 export function fulltextToEntry(fulltext: string): Entry {

@@ -34,12 +34,12 @@ const END_PATTERN = /^:END:\n/;
 
 const DAY_OF_WEEK_ORG_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-/** Convert an Org datetime string into a JavaScript datetime. */
-export function orgDatetimeToJs(orgDt: string): Date {
+/** Convert an Org datetime string into a JavaScript datetime. Return undefined if not a valid datetime. */
+export function orgDatetimeToJs(orgDt: string): Date | undefined {
   const result = DATETIME_PATTERN.exec(orgDt);
 
   if (!result) {
-    throw new Error(`${orgDt} is not a datetime`);
+    return undefined;
   }
 
   const year = parseInt(result[DatetimeFields.YEAR]);
@@ -69,22 +69,27 @@ export function jsDatetimeToOrg(jsDt: Date): string {
   return dateString + ` ${jsDt.getHours().toString().padStart(2, '0')}:${jsDt.getMinutes().toString().padStart(2, '0')}`;
 }
 
+/** Split out full text into individual lines */
+export function fulltextToLines(fulltext: string): string[] {
+  return fulltext.split("\n").map((line: string) => line + "\n");
+}
+
 /** Return true if the given line is a headline. */
 function isHeadline(line: string): boolean {
   return HEADLINE_PATTERN.test(line);
 }
 
 /** Get the ID in the entry content, or return undefined if none set. */
-function getEntryId(content: string[]): string | undefined {
+function getEntryId(content: string[], firstLine: number = 1): string | undefined {
   if (content.length < 4) {
     return undefined;
   }
 
-  if (content[1] != ":PROPERTIES:\n") {
+  if (content[firstLine] != ":PROPERTIES:\n") {
     console.log("No PROPERTIES while scanning ID.");
     return undefined;
   }
-  for (var i = 2; i < content.length; i++) {
+  for (var i = firstLine + 1; i < content.length; i++) {
     console.log(`Scanning ${i} - ${content[i]}...`);
     const test = /^:ID: +(.*)\n/.exec(content[i]);
     if (test) {
@@ -119,14 +124,25 @@ function insertProperty(content: string[], name: string, value: string) {
 /** Change the content string to add the property or replace the existing one. */
 function setProperty(content: string[], name: string, value: string) {
 
-  if (content.length < 4 || !PROPERTIES_PATTERN.test(content[1])) {
+  let i = 1;
+  let propertiesDrawerFound = false;
+  // Find start of properties
+  for (; i < content.length; i++) {
+    if (PROPERTIES_PATTERN.test(content[i])) {
+      propertiesDrawerFound = true;
+      break;
+    }
+  }
+
+  if (!propertiesDrawerFound) {
     insertProperty(content, name, value);
     return;
   }
+
   const pattern = new RegExp(`^:${name}: +(.*)\n`);
 
   // content began with properties; scan for specific property
-  for (let i = 2; i < content.length; i++) {
+  for (; i < content.length; i++) {
     if (pattern.test(content[i])) {
       content[i] = `:${name}:       ${value}\n`;
       return;
@@ -164,12 +180,26 @@ export function setTodoStatus(content: string[], value: TodoStatus) {
   content[0] = updated;
 }
 
+/** Parse out the deadline from the full text, or return undefined if it is absent. */
+export function getDeadline(fulltext: string[]): Date | undefined {
+  if (fulltext.length < 2) {
+    return undefined;
+  }
+  const deadlineMatch = DEADLINE_PATTERN.exec(fulltext[1]);
+  if (!deadlineMatch) {
+    return undefined;
+  }
+  return orgDatetimeToJs(deadlineMatch[1]);
+}
+
 /** Build one entry from a list of the text lines in the entry. */
 export function parseEntry(content: string[]): Entry {
   console.log("Parsing entry...");
   if (!content.length) {
     throw new Error("Cannot parse entry: no lines to parse.");
   }
+
+  let firstBodyLine = 1;
 
   const headlineParse = HEADLINE_PATTERN.exec(content[0]);
   if (!headlineParse) {
@@ -181,8 +211,14 @@ export function parseEntry(content: string[]): Entry {
     todoState = headlineParse[1] == "DONE " ? TodoStatus.DONE : TodoStatus.TODO;
   }
 
-  let priority: number | undefined = undefined;
-  let entryId = getEntryId(content);
+  const deadline = getDeadline(content);
+  console.log(deadline ? `deadline found: ${deadline}` : `no deadline found in ${content[1]}`);
+
+  if(deadline) {
+    firstBodyLine++;
+  }
+
+  let entryId = getEntryId(content, firstBodyLine);
   if (!entryId) {
     console.log("No entry ID found; adding one...");
     entryId = newId();
@@ -193,8 +229,9 @@ export function parseEntry(content: string[]): Entry {
 
   // parse body
   let parsingDrawer = false;
+  let priority: number | undefined = undefined;
   let bodyLines = [];
-  for (let i = 1; i < content.length; i++) {
+  for (let i = firstBodyLine; i < content.length; i++) {
     if (!parsingDrawer) {
       if (DRAWER_PATTERN.test(content[i])) {
 	parsingDrawer = true;
@@ -225,6 +262,7 @@ export function parseEntry(content: string[]): Entry {
     summary: {
       id: entryId,
       headline: headline,
+      deadline: deadline,
       todo: todoState,
       body: bodyLines.join(""),
       priority: priority === undefined ? -1 : priority,
