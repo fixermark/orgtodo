@@ -14,6 +14,8 @@ import {useEffect, useState, useCallback} from 'react';
 
 type PriorityOperations = "topqueue" | "up1" | "down1" | "bury";
 
+type SortColumn = "priority" | "deadline";
+
 /** Compute class name for the TODO line */
 function todoClassName(entry: Entry): string {
   return `todoline ${entry.summary.todo === TodoStatus.DONE ? "todo-done" : "todo-todo"}`;
@@ -46,8 +48,11 @@ function messageForError(err: unknown): string | undefined {
 
 export const App = () => {
 
+
   const [error, resetError] = useErrorBoundary(
     (error, errorInfo) => console.error(error));
+
+  const [sortBy, setSortBy] = useState<SortColumn>("priority");
 
   const [entries, setEntries] = useState<Entry[]>([]);
 
@@ -55,9 +60,10 @@ export const App = () => {
 
   const [showNewTask, setShowNewTask] = useState<boolean>(false);
 
-  const onRefreshEntries = useCallback(() => {
-    const fetchData = async () => {
-      const response = await fetch('/tasks');
+
+  const onRefreshEntries = useCallback((column: SortColumn| undefined = undefined) => {
+    const fetchData = async (sortBy: SortColumn) => {
+      const response = await fetch(`/tasks?sort=${sortBy}`);
       if (!response.ok) {
 	throw new Error(`Failed to fetch: ${response.status}`);
       }
@@ -66,8 +72,14 @@ export const App = () => {
       setShowNewTask(false);
     };
 
-    fetchData();
+    fetchData(column ? column : sortBy);
   }, [setEntries, setShowOrgImporter, setShowNewTask]);
+
+  const onToggleSortBy = useCallback(() => {
+    const newSortBy = sortBy === "priority" ? "deadline" : "priority";
+    setSortBy(newSortBy);
+    onRefreshEntries(newSortBy);
+  }, [sortBy, setSortBy, onRefreshEntries]);
 
   const onToggleTodo = useCallback((id: string, newValue: TodoStatus) => {
     const toggleTodo = async () => {
@@ -111,6 +123,7 @@ export const App = () => {
 		  {errMsg} <button onClick={resetError}>X</button>
 		  </div>
       }
+      <div><button onClick={onToggleSortBy}>Sorting by {sortBy}</button></div>
       <div className="chips">
 	{!entries.length ? "No entries." : entries.map((entry) =>
 	  <div className="chip">

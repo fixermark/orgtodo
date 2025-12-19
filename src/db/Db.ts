@@ -17,6 +17,8 @@ import * as fs from "fs";
 
 const DB_PATH = "/var/tasks.db";
 
+const YEAR_2100_IN_MSEC = 4102444800000;
+
 enum Priority {
   TOP = 1,
   BOTTOM,
@@ -27,17 +29,33 @@ export enum PriorityBump {
   LOWER,
 }
 
-/** Get a connection to the database, creating the database if necessary. */
-async function connection(): Promise<sqlite.Database> {
-  if (!fs.existsSync(DB_PATH)) {
-    console.log("Creating new database and tasks table.");
-    const db = await sqlite.open({filename: DB_PATH, driver: Database});
+export enum ViewSort {
+  BY_PRIORITY=1,
+  BY_DEADLINE,
+}
+
+export const TASK_COLUMN_NAMES = ['id', 'priority', 'deadline', 'fulltext'];
+
+
+
+/** Create an empty `tasks` table. */
+export async function initTasksTable(db: sqlite.Database) {
+  // in db, deadline is Javascript-style msec since Epoch
     await db.run(`
     CREATE TABLE IF NOT EXISTS tasks (
       id STRING PRIMARY KEY,
       priority INT,
+      deadline INTEGER,
       fulltext STRING
     )`);
+}
+
+/** Get a connection to the database, creating the database if necessary. */
+export async function connection(): Promise<sqlite.Database> {
+  if (!fs.existsSync(DB_PATH)) {
+    console.log("Creating new database and tasks table.");
+    const db = await sqlite.open({filename: DB_PATH, driver: Database});
+    await initTasksTable(db);
   }
 
   return await sqlite.open({filename: DB_PATH, driver: Database});
@@ -50,10 +68,14 @@ export function fulltextToEntry(fulltext: string): Entry {
 }
 
 /** Get all Entry from the database. */
-export async function readEntries(): Promise<Entry[]> {
+export async function readEntries(sort: ViewSort = ViewSort.BY_PRIORITY): Promise<Entry[]> {
   const db = await connection();
 
-  const rows = await db.all('SELECT * FROM tasks ORDER BY priority ASC');
+  const ordering = sort === ViewSort.BY_PRIORITY ? 'priority' : `IFNULL(deadline, ${YEAR_2100_IN_MSEC})`;
+
+  console.log(`Ordering by ${ordering}`);
+
+  const rows = await db.all(`SELECT * FROM tasks ORDER BY ${ordering} ASC`);
 
   return rows.map((row) => fulltextToEntry(row.fulltext));
 }
@@ -65,7 +87,8 @@ export async function replaceEntries(entries: Entry[]): Promise<void> {
   await db.run("DELETE from tasks");
 
   for (const entry of entries) {
-    await db.run("INSERT INTO tasks (id, priority, fulltext) VALUES (?,?,?)", [entry.summary.id, entry.summary.priority, entry.fulltext.join("")]);
+    const deadline = entry.summary.deadline ? entry.summary.deadline.getTime() : "NULL";
+    await db.run("INSERT INTO tasks (id, priority, deadline, fulltext) VALUES (?,?,?,?)", [entry.summary.id, entry.summary.priority, deadline, entry.fulltext.join("")]);
   }
 }
 
@@ -194,6 +217,7 @@ export async function addTask(entry: Entry): Promise<void> {
 
   setPriority(entry.fulltext, newPriority);
 
-  await db.run("INSERT INTO tasks (id, priority, fulltext) VALUES (?,?,?)", [entry.summary.id, newPriority, entry.fulltext.join("")]);
+  const deadline = entry.summary.deadline ? entry.summary.deadline.getTime() : "NULL";
+  await db.run("INSERT INTO tasks (id, priority, deadline, fulltext) VALUES (?,?,?,?)", [entry.summary.id, newPriority, deadline, entry.fulltext.join("")]);
 
 }
