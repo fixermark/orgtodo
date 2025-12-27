@@ -208,7 +208,12 @@ export function parseEntry(content: string[]): Entry {
   const headline = headlineParse[2];
   let todoState = TodoStatus.NONE;
   if (headlineParse[1]) {
-    todoState = headlineParse[1] == "DONE " ? TodoStatus.DONE : TodoStatus.TODO;
+    if (headlineParse[1] == "DONE ") {
+      todoState = TodoStatus.DONE;
+    }
+    if (headlineParse[1] == "TODO ") {
+      todoState = TodoStatus.TODO;
+    }
   }
 
   const deadline = getDeadline(content);

@@ -54,6 +54,8 @@ export const App = () => {
 
   const [sortBy, setSortBy] = useState<SortColumn>("priority");
 
+  const [hideDone, setHideDone] = useState<boolean>(false);
+
   const [entries, setEntries] = useState<Entry[]>([]);
 
   const [showOrgImporter, setShowOrgImporter] = useState<boolean>(false);
@@ -61,9 +63,9 @@ export const App = () => {
   const [showNewTask, setShowNewTask] = useState<boolean>(false);
 
 
-  const onRefreshEntries = useCallback((column: SortColumn| undefined = undefined) => {
-    const fetchData = async (sortBy: SortColumn) => {
-      const response = await fetch(`/tasks?sort=${sortBy}`);
+  const onRefreshEntries = useCallback((column: SortColumn| undefined = undefined, hideDoneFlag: boolean | undefined = undefined) => {
+    const fetchData = async (sortBy: SortColumn, hideDone: boolean) => {
+      const response = await fetch(`/tasks?sort=${sortBy}&showDone=${hideDone ? 'false' : 'true'}`);
       if (!response.ok) {
 	throw new Error(`Failed to fetch: ${response.status}`);
       }
@@ -72,14 +74,21 @@ export const App = () => {
       setShowNewTask(false);
     };
 
-    fetchData(column ? column : sortBy);
+    fetchData(column ? column : sortBy,
+      typeof hideDoneFlag !== 'undefined' ? hideDoneFlag : hideDone);
   }, [setEntries, setShowOrgImporter, setShowNewTask]);
 
   const onToggleSortBy = useCallback(() => {
     const newSortBy = sortBy === "priority" ? "deadline" : "priority";
     setSortBy(newSortBy);
-    onRefreshEntries(newSortBy);
-  }, [sortBy, setSortBy, onRefreshEntries]);
+    onRefreshEntries(newSortBy, hideDone);
+  }, [sortBy, setSortBy, hideDone, setHideDone, onRefreshEntries]);
+
+  const onToggleHideDone = useCallback(() => {
+    const newHideDone = !hideDone;
+    setHideDone(newHideDone);
+    onRefreshEntries(sortBy, newHideDone);
+  }, [hideDone, setHideDone, onRefreshEntries]);
 
   const onToggleTodo = useCallback((id: string, newValue: TodoStatus) => {
     const toggleTodo = async () => {
@@ -89,11 +98,11 @@ export const App = () => {
 	throw new Error(`Failed to update todo: ${response.status}`);
       }
       console.log("Refreshing entries after toggling todo...");
-      onRefreshEntries();
+      onRefreshEntries(sortBy, hideDone);
     };
 
     toggleTodo();
-  }, [onRefreshEntries]);
+  }, [onRefreshEntries, sortBy, hideDone]);
 
   const onSetPriority = useCallback((id: string, operation: PriorityOperations) => {
     const setPriority = async () => {
@@ -101,11 +110,11 @@ export const App = () => {
       if (!response.ok) {
 	throw new Error(`Failed to set priority: ${response.status}`);
       }
-      onRefreshEntries();
+      onRefreshEntries(sortBy, hideDone);
     };
 
     setPriority();
-  }, [onRefreshEntries]);
+  }, [onRefreshEntries, sortBy, hideDone]);
 
   const onClickShowOrgImporter = useCallback(() => setShowOrgImporter(!showOrgImporter), [showOrgImporter, setShowOrgImporter]);
   const onClickShowNewTask = useCallback(() => setShowNewTask(!showNewTask), [showNewTask, setShowNewTask]);
@@ -124,6 +133,7 @@ export const App = () => {
 		  </div>
       }
       <div><button onClick={onToggleSortBy}>Sorting by {sortBy}</button></div>
+      <div><input type="checkbox" id="hideDone" onClick={onToggleHideDone} checked={hideDone} /><label htmlFor="hideDone">Hide Done</label></div>
       <div className="chips">
 	{!entries.length ? "No entries." : entries.map((entry) =>
 	  <div className="chip">

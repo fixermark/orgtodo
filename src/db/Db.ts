@@ -34,7 +34,7 @@ export enum ViewSort {
   BY_DEADLINE,
 }
 
-export const TASK_COLUMN_NAMES = ['id', 'priority', 'deadline', 'fulltext'];
+export const TASK_COLUMN_NAMES = ['id', 'done', 'priority', 'deadline', 'fulltext'];
 
 
 
@@ -44,6 +44,7 @@ export async function initTasksTable(db: sqlite.Database) {
     await db.run(`
     CREATE TABLE IF NOT EXISTS tasks (
       id STRING PRIMARY KEY,
+      done BOOLEAN,
       priority INT,
       deadline INTEGER,
       fulltext STRING
@@ -68,14 +69,22 @@ export function fulltextToEntry(fulltext: string): Entry {
 }
 
 /** Get all Entry from the database. */
-export async function readEntries(sort: ViewSort = ViewSort.BY_PRIORITY): Promise<Entry[]> {
+export async function readEntries(sort: ViewSort = ViewSort.BY_PRIORITY, showDone: boolean): Promise<Entry[]> {
   const db = await connection();
+  console.log(`showDone: ${showDone}`);
+  const whereClause = showDone ? "" : "WHERE done <> TRUE";
 
   const ordering = sort === ViewSort.BY_PRIORITY ? 'priority' : `IFNULL(deadline, ${YEAR_2100_IN_MSEC})`;
 
   console.log(`Ordering by ${ordering}`);
 
-  const rows = await db.all(`SELECT * FROM tasks ORDER BY ${ordering} ASC`);
+  const query = `SELECT * FROM tasks ${whereClause} ORDER BY ${ordering} ASC`;
+
+  console.log(`Query: ${query}`);
+
+  const rows = await db.all(query);
+
+  console.log(`Todos: ${rows.map((row) => row.done)}`);
 
   return rows.map((row) => fulltextToEntry(row.fulltext));
 }
@@ -88,7 +97,13 @@ export async function replaceEntries(entries: Entry[]): Promise<void> {
 
   for (const entry of entries) {
     const deadline = entry.summary.deadline ? entry.summary.deadline.getTime() : "NULL";
-    await db.run("INSERT INTO tasks (id, priority, deadline, fulltext) VALUES (?,?,?,?)", [entry.summary.id, entry.summary.priority, deadline, entry.fulltext.join("")]);
+    await db.run("INSERT INTO tasks (id, done, priority, deadline, fulltext) VALUES (?,?,?,?,?)", [
+      entry.summary.id,
+      entry.summary.todo === TodoStatus.DONE,
+      entry.summary.priority,
+      deadline,
+      entry.fulltext.join("")
+    ]);
   }
 }
 
@@ -204,7 +219,9 @@ export async function setTodoStatus(entryId: string, status: TodoStatus): Promis
 
   parseSetTodoStatus(entry.fulltext, status);
 
-  await db.run("UPDATE tasks SET fulltext=? WHERE ID=?", [entry.fulltext.join(""), entryId]);
+  console.log(`Setting id ${entryId} to status ${status === TodoStatus.DONE}`);
+
+  await db.run("UPDATE tasks SET done=?, fulltext=? WHERE ID=?", [status === TodoStatus.DONE, entry.fulltext.join(""), entryId]);
 }
 
 /** Add new entry at topqueue location. */
@@ -218,6 +235,12 @@ export async function addTask(entry: Entry): Promise<void> {
   setPriority(entry.fulltext, newPriority);
 
   const deadline = entry.summary.deadline ? entry.summary.deadline.getTime() : "NULL";
-  await db.run("INSERT INTO tasks (id, priority, deadline, fulltext) VALUES (?,?,?,?)", [entry.summary.id, newPriority, deadline, entry.fulltext.join("")]);
+  await db.run("INSERT INTO tasks (id, done, priority, deadline, fulltext) VALUES (?,?,?,?,?)", [
+    entry.summary.id,
+    entry.summary.todo === TodoStatus.DONE,
+    newPriority,
+    deadline,
+    entry.fulltext.join("")
+  ]);
 
 }

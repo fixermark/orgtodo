@@ -26,8 +26,10 @@ server.use("/public", express.static((frontendPublicPath)));
 server.post("/tasks/:taskid", handleTaskPost);
 
 server.get("/tasks", async (req, res) => {
+  console.log("*** PROCESSING QUERY");
   const entries = await readEntries(
-    req.query.sort === 'deadline' ? ViewSort.BY_DEADLINE : ViewSort.BY_PRIORITY
+    req.query.sort === 'deadline' ? ViewSort.BY_DEADLINE : ViewSort.BY_PRIORITY,
+    req.query.showDone === 'true'
   );
 
   res.json(entries);
