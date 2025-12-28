@@ -69,7 +69,7 @@ export const App = () => {
       if (!response.ok) {
 	throw new Error(`Failed to fetch: ${response.status}`);
       }
-      setEntries((await response.json()).map((entry: any) => marshallEntryJson(entry)));
+      setEntries(await response.json());
       setShowOrgImporter(false);
       setShowNewTask(false);
     };

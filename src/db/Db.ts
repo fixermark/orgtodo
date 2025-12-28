@@ -102,7 +102,7 @@ export async function replaceEntries(entries: Entry[]): Promise<void> {
       entry.summary.todo === TodoStatus.DONE,
       entry.summary.priority,
       deadline,
-      entry.fulltext.join("")
+      entry.fulltext
     ]);
   }
 }
@@ -130,9 +130,9 @@ export async function topqueue(entryId: string): Promise<void> {
 
   const entry = fulltextToEntry(entryText);
 
-  setPriority(entry.fulltext, topPriority - 1);
+  entry.fulltext = setPriority(entry.fulltext, topPriority - 1);
 
-  await db.run("UPDATE tasks SET priority=?, fulltext=? WHERE ID=?", [topPriority - 1, entry.fulltext.join(""), entryId]);
+  await db.run("UPDATE tasks SET priority=?, fulltext=? WHERE ID=?", [topPriority - 1, entry.fulltext, entryId]);
 }
 
 /** Move the specified entry to the bottom of the priority queue. */
@@ -146,9 +146,9 @@ export async function bury(entryId: string): Promise<void> {
 
   const entry = fulltextToEntry(entryText);
 
-  setPriority(entry.fulltext, bottomPriority + 1);
+  entry.fulltext = setPriority(entry.fulltext, bottomPriority + 1);
 
-  await db.run("UPDATE tasks SET priority=?, fulltext=? WHERE ID=?", [bottomPriority + 1, entry.fulltext.join(""), entryId]);
+  await db.run("UPDATE tasks SET priority=?, fulltext=? WHERE ID=?", [bottomPriority + 1, entry.fulltext, entryId]);
 }
 
 function swapAndCollapsePriorities(first: number, second: number): [number, number] {
@@ -199,13 +199,11 @@ export async function bumpPriority(entryId: string, direction: PriorityBump): Pr
 
   const [newEntryPriority, newNeighborPriority] = swapAndCollapsePriorities(entry.priority, neighbor.priority);
 
-  const entryLines = fulltextToLines(entry.fulltext);
-  const neighborLines = fulltextToLines(neighbor.fulltext);
-  setPriority(entryLines, newEntryPriority);
-  setPriority(neighborLines, newNeighborPriority);
+  const updatedEntry = setPriority(entry.fulltext, newEntryPriority);
+  const updatedNeighbor = setPriority(neighbor.fulltext, newNeighborPriority);
 
-  await db.run("UPDATE tasks SET priority=?, fulltext=? where id=?", [newEntryPriority, entryLines.join(""), entry.id]);
-  await db.run("UPDATE tasks SET priority=?, fulltext=? where id=?", [newNeighborPriority, neighborLines.join(""), neighbor.id]);
+  await db.run("UPDATE tasks SET priority=?, fulltext=? where id=?", [newEntryPriority, updatedEntry, entry.id]);
+  await db.run("UPDATE tasks SET priority=?, fulltext=? where id=?", [newNeighborPriority, updatedNeighbor, neighbor.id]);
 }
 
 
@@ -217,11 +215,11 @@ export async function setTodoStatus(entryId: string, status: TodoStatus): Promis
 
   const entry = fulltextToEntry(entryText);
 
-  parseSetTodoStatus(entry.fulltext, status);
+  entry.fulltext = parseSetTodoStatus(entry.fulltext, status);
 
   console.log(`Setting id ${entryId} to status ${status === TodoStatus.DONE}`);
 
-  await db.run("UPDATE tasks SET done=?, fulltext=? WHERE ID=?", [status === TodoStatus.DONE, entry.fulltext.join(""), entryId]);
+  await db.run("UPDATE tasks SET done=?, fulltext=? WHERE ID=?", [status === TodoStatus.DONE, entry.fulltext, entryId]);
 }
 
 /** Add new entry at topqueue location. */
@@ -240,7 +238,7 @@ export async function addTask(entry: Entry): Promise<void> {
     entry.summary.todo === TodoStatus.DONE,
     newPriority,
     deadline,
-    entry.fulltext.join("")
+    entry.fulltext
   ]);
 
 }

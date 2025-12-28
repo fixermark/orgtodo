@@ -71,7 +71,10 @@ export function jsDatetimeToOrg(jsDt: Date): string {
 
 /** Split out full text into individual lines */
 export function fulltextToLines(fulltext: string): string[] {
-  return fulltext.split("\n").map((line: string) => line + "\n");
+  const result = fulltext.split("\n").map((line: string) => line + "\n");
+  result[result.length - 1] = result[result.length - 1].slice(0,-1);
+
+  return result;
 }
 
 /** Return true if the given line is a headline. */
@@ -111,7 +114,9 @@ function sortAndFixPriority(entries: Entry[]) {
   let priority = 1;
   for (const entry of entries) {
     entry.summary.priority = priority;
-    setProperty(entry.fulltext, "TimeTrackerPriority", priority.toString());
+    const lines = fulltextToLines(entry.fulltext);
+    setProperty(lines, "TimeTrackerPriority", priority.toString());
+    entry.fulltext = lines.join("");
     priority++;
   }
 }
@@ -159,12 +164,16 @@ function setProperty(content: string[], name: string, value: string) {
 }
 
 /** Set the priority on the specified fulltext. */
-export function setPriority(content: string[], value: number) {
+export function setPriority(fulltext: string, value: number): string {
+  let content = fulltextToLines(fulltext);
   setProperty(content, "TimeTrackerPriority", value.toString());
+  return content.join("");
 }
 
 /** Set the TODO status on the specified fulltext. */
-export function setTodoStatus(content: string[], value: TodoStatus) {
+export function setTodoStatus(fulltext: string, value: TodoStatus): string {
+  let content = fulltextToLines(fulltext);
+
   let statusString = "";
   switch(value) {
     case TodoStatus.TODO:
@@ -178,6 +187,8 @@ export function setTodoStatus(content: string[], value: TodoStatus) {
   const headlineMatcher = /(\*+) +(TODO |DONE )? *(.*)\n/;
   const updated = content[0].replace(headlineMatcher, `$1 ${statusString} $3\n`);
   content[0] = updated;
+
+  return content.join("");
 }
 
 /** Parse out the deadline from the full text, or return undefined if it is absent. */
@@ -272,7 +283,7 @@ export function parseEntry(content: string[]): Entry {
       body: bodyLines.join(""),
       priority: priority === undefined ? -1 : priority,
     },
-    fulltext: content,
+    fulltext: content.join(""),
   };
 }
 

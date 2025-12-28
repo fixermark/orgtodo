@@ -20,7 +20,7 @@ export const OrgImporter: React.FC<OrgImporterProps> = ({onRefreshEntries}) => {
 	throw new Error(`Failed to fetch: ${response.status}`);
       }
       const entries = (await response.json()) as Entry[];
-      setImportText(entries.map((entry) => entry.fulltext.join("")).join(""));
+      setImportText(entries.map((entry) => entry.fulltext).join(""));
     };
     getEntries();
   }, []);
