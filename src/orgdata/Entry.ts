@@ -1,3 +1,5 @@
+import {v4 as uuidv4} from 'uuid';
+
 /** Org entries */
 
 export enum TodoStatus {
@@ -24,6 +26,10 @@ export interface Entry {
 }
 
 export function newId(): string {
-  return crypto.randomUUID();
+  // randomUUID only available in secure environments. Fall back to non-crypto UUID if not available.
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return uuidv4();
 }
 

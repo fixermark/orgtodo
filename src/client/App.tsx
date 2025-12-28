@@ -3,15 +3,16 @@
  * Licensed under the MIT License (https://opensource.org/licenses/MIT)
  */
 
-import {fulltextToLines, parse, getDeadline} from "../orgdata/Parser";
+import {fulltextToLines, parse, parseEntry, getDeadline} from "../orgdata/Parser";
 import {Entry, TodoStatus} from "../orgdata/Entry";
+import {WireEntry} from '../orgdata/Wire';
 import {OrgImporter} from "./OrgImporter";
-import {NewTask } from "./NewTask";
+import {NewTask} from "./NewTask";
 import 'react';
 import {withErrorBoundary, useErrorBoundary} from 'react-use-error-boundary';
 
 import {useEffect, useState, useCallback} from 'react';
-
+import {useLocalStore} from './LocalStore';
 type PriorityOperations = "topqueue" | "up1" | "down1" | "bury";
 
 type SortColumn = "priority" | "deadline";
@@ -46,8 +47,39 @@ function messageForError(err: unknown): string | undefined {
   return (err as Error).message;
 }
 
+/** Convert local store values to the individual entires */
+function localStoreToEntries(storeEntries: WireEntry[], sortBy: SortColumn, hideDone: boolean): Entry[] {
+  let entries = storeEntries.map((entry) => parseEntry(fulltextToLines(entry.fulltext)));
+
+  if (hideDone) {
+    entries = entries.filter((entry) => entry.summary.todo !== TodoStatus.DONE);
+  }
+
+  let sortFn = (a: Entry, b: Entry) => (a.summary.priority - b.summary.priority);
+
+  if (sortBy === "deadline") {
+    // Sort by deadline unless no deadline, then sort by priority
+    sortFn = (a: Entry, b: Entry) => {
+      if (!a.summary.deadline && !b.summary.deadline) {
+	return a.summary.priority - b.summary.priority;
+      } else if (!a.summary.deadline) {
+	return 1;
+      } else if (!b.summary.deadline) {
+	return -1;
+      }
+      return (a.summary.deadline.valueOf() - b.summary.deadline.valueOf());
+    }
+  }
+
+  entries.sort(sortFn);
+
+  return entries;
+
+}
+
 export const App = () => {
 
+  const localStore = useLocalStore();
 
   const [error, resetError] = useErrorBoundary(
     (error, errorInfo) => console.error(error));
@@ -56,73 +88,35 @@ export const App = () => {
 
   const [hideDone, setHideDone] = useState<boolean>(false);
 
-  const [entries, setEntries] = useState<Entry[]>([]);
-
   const [showOrgImporter, setShowOrgImporter] = useState<boolean>(false);
 
   const [showNewTask, setShowNewTask] = useState<boolean>(false);
 
-
-  const onRefreshEntries = useCallback((column: SortColumn| undefined = undefined, hideDoneFlag: boolean | undefined = undefined) => {
-    const fetchData = async (sortBy: SortColumn, hideDone: boolean) => {
-      const response = await fetch(`/tasks?sort=${sortBy}&showDone=${hideDone ? 'false' : 'true'}`);
-      if (!response.ok) {
-	throw new Error(`Failed to fetch: ${response.status}`);
-      }
-      setEntries(await response.json());
-      setShowOrgImporter(false);
-      setShowNewTask(false);
-    };
-
-    fetchData(column ? column : sortBy,
-      typeof hideDoneFlag !== 'undefined' ? hideDoneFlag : hideDone);
-  }, [setEntries, setShowOrgImporter, setShowNewTask]);
+  const entries = localStoreToEntries(Object.values(localStore.store.entries), sortBy, hideDone);
 
   const onToggleSortBy = useCallback(() => {
     const newSortBy = sortBy === "priority" ? "deadline" : "priority";
     setSortBy(newSortBy);
-    onRefreshEntries(newSortBy, hideDone);
-  }, [sortBy, setSortBy, hideDone, setHideDone, onRefreshEntries]);
+  }, [sortBy, setSortBy, hideDone, setHideDone]);
 
   const onToggleHideDone = useCallback(() => {
     const newHideDone = !hideDone;
     setHideDone(newHideDone);
-    onRefreshEntries(sortBy, newHideDone);
-  }, [hideDone, setHideDone, onRefreshEntries]);
+  }, [hideDone, setHideDone]);
 
   const onToggleTodo = useCallback((id: string, newValue: TodoStatus) => {
-    const toggleTodo = async () => {
-      const todoString = newValue == TodoStatus.TODO ? "todo" : "done";
-      const response = await fetch(`/tasks/${id}?todo=${todoString}`, {method: 'POST'});
-      if (!response.ok) {
-	throw new Error(`Failed to update todo: ${response.status}`);
-      }
-      console.log("Refreshing entries after toggling todo...");
-      onRefreshEntries(sortBy, hideDone);
-    };
-
-    toggleTodo();
-  }, [onRefreshEntries, sortBy, hideDone]);
+    // TODO: reimplement
+  }, [localStore]);
 
   const onSetPriority = useCallback((id: string, operation: PriorityOperations) => {
-    const setPriority = async () => {
-      const response = await fetch(`/tasks/${id}?priority=${operation}`, {method: 'POST'});
-      if (!response.ok) {
-	throw new Error(`Failed to set priority: ${response.status}`);
-      }
-      onRefreshEntries(sortBy, hideDone);
-    };
+    // TODO: reimplement
+  }, [localStore]);
 
-    setPriority();
-  }, [onRefreshEntries, sortBy, hideDone]);
+  const onReplaceEntries = useCallback((newEntries: string) =>
+    localStore.replaceTasks(newEntries), [localStore]);
 
   const onClickShowOrgImporter = useCallback(() => setShowOrgImporter(!showOrgImporter), [showOrgImporter, setShowOrgImporter]);
   const onClickShowNewTask = useCallback(() => setShowNewTask(!showNewTask), [showNewTask, setShowNewTask]);
-
-  useEffect(() => {
-    onRefreshEntries();
-  }, []);
-
 
   const errMsg = messageForError(error);
 
@@ -162,10 +156,10 @@ export const App = () => {
 	<button onClick={onClickShowOrgImporter}>Import from org</button>
       </div>
       <div>
-	{showOrgImporter && <OrgImporter onRefreshEntries={onRefreshEntries}/>}
+	{showOrgImporter && <OrgImporter storeEntries={Object.values(localStore.store.entries)} onReplaceEntries={onReplaceEntries}/>}
       </div>
       <div>
-	{showNewTask && <NewTask onRefreshEntries={onRefreshEntries}/>}
+	{showNewTask && <NewTask onRefreshEntries={() => {}}/>}
       </div>
     </div>
   );
