@@ -6,7 +6,19 @@ import * as sqlite from 'sqlite';
 export async function checkAndMigrate() {
   const db = await connection();
 
+  console.log("Confirming tasks table exists...");
+
+  const tables = await db.all('PRAGMA table_list');
+  const table_names = tables.map((col: any) => col.name);
+
+  if (!table_names.includes("tasks")) {
+    console.log("Missing tasks table; recreating.");
+    await initTasksTable(db);
+  }
+
   console.log("Confirming tasks table schema is correct...");
+
+
 
   const columns = await db.all('PRAGMA table_info(tasks)');
 

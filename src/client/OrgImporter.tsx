@@ -15,7 +15,7 @@ export const OrgImporter: React.FC<OrgImporterProps> = ({onRefreshEntries}) => {
 
   useEffect(() => {
     const getEntries = async () => {
-      const response = await fetch("/tasks");
+      const response = await fetch("/tasks?showDone=true");
       if (!response.ok) {
 	throw new Error(`Failed to fetch: ${response.status}`);
       }
