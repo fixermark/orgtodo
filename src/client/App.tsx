@@ -8,12 +8,12 @@ import {Entry, TodoStatus} from "../orgdata/Entry";
 import {WireEntry} from '../orgdata/Wire';
 import {OrgImporter} from "./OrgImporter";
 import {NewTask} from "./NewTask";
+import {todoStatusUpdate, PriorityOperations, todoPriorityUpdate} from "../orgdata/Updates";
 import 'react';
 import {withErrorBoundary, useErrorBoundary} from 'react-use-error-boundary';
 
 import {useEffect, useState, useCallback} from 'react';
 import {useLocalStore} from './LocalStore';
-type PriorityOperations = "topqueue" | "up1" | "down1" | "bury";
 
 type SortColumn = "priority" | "deadline";
 
@@ -105,11 +105,11 @@ export const App = () => {
   }, [hideDone, setHideDone]);
 
   const onToggleTodo = useCallback((id: string, newValue: TodoStatus) => {
-    // TODO: reimplement
+    localStore.updateTask(todoStatusUpdate(id, newValue));
   }, [localStore]);
 
   const onSetPriority = useCallback((id: string, operation: PriorityOperations) => {
-    // TODO: reimplement
+    localStore.updateTask(todoPriorityUpdate(id, operation));
   }, [localStore]);
 
   const onReplaceEntries = useCallback((newEntries: string) =>

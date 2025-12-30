@@ -1,6 +1,7 @@
 import 'react';
 import {useState, useEffect} from 'react';
 
+import {TodoUpdate, handleUpdate} from '../orgdata/Updates';
 import {WireDbFull, WireEntry} from '../orgdata/Wire';
 import {hashForText} from '../orgdata/Hash';
 import {Entry} from '../orgdata/Entry';
@@ -51,7 +52,7 @@ async function updateStore(updateTime: number, entries: Entry[], setStore: (stor
 /** The local store and functions to manipulate it */
 export interface LocalStore {
   store: WireDbFull;
-  updateTask: (id: string, taskData: string) => void;
+  updateTask: (update: TodoUpdate) => void;
   replaceTasks: (tasks: string) => void;
   // TODO delete task
 }
@@ -63,7 +64,9 @@ export function useLocalStore(): LocalStore {
   });
 
   useEffect(() => {
-    if (!store) {
+    console.log("Loading from local store...");
+    debugger;
+    if (store.epochUpdateMsecs === 0) {
       // TODO: ideally, skip loading if local store completely empty and just get full dump.
       setStore(loadStore());
       // TODO: sync local store against remote store.
@@ -72,26 +75,27 @@ export function useLocalStore(): LocalStore {
 
   return {
     store: store,
-    updateTask: (id: string, taskData: string) => {
+    updateTask: (update: TodoUpdate) => {
       // TODO: get current hash of task before updating (or 0 if task missing).
-      let entry = store.entries[id];
-      if (!entry) {
-	entry = {
-	  id: id,
-	  hash: "",
-	  epochUpdateMsecs: new Date().valueOf(),
-	  fulltext: taskData
-	};
-	store.entries[id]=entry;
-      }
-      entry.fulltext = taskData;
-      async function update() {
-	entry.hash = await hashForText(entry.fulltext);
-	setStore(store);
-	saveStore(store);
+      const entriesToUpdate = handleUpdate(update, store);
+
+      async function asyncUpdate() {
+	const timestamp = new Date().valueOf();
+	for (const entry of entriesToUpdate) {
+	  entry.hash = await hashForText(entry.fulltext);
+	  entry.epochUpdateMsecs=timestamp;
+	  store.entries[entry.id] = entry;
+	}
+	const newStore = {
+	  epochUpdateMsecs: timestamp,
+          entries: store.entries,
+        };
+
+	setStore(newStore);
+	saveStore(newStore);
 	// TODO: queue task to send to server with previous hash.
       }
-      update();
+      asyncUpdate();
     },
     replaceTasks: (tasks: string) => {
       const entries = parse(tasks);
