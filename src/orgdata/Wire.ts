@@ -12,6 +12,16 @@ export interface WireEntry extends WireEntrySummary {
   fulltext: string;
 }
 
+/** Wire entry possibly without its hash and update data. */
+export interface WireEntryUnhashed {
+  id: string;
+  fulltext: string;
+  hash?: string;
+  epochUpdateMsecs?: number;
+}
+
+export type TasksResolution = "update" | "summary" | "full";
+
 /** State needed to determine if db is synchronized */
 export interface WireDbUpdate {
   epochUpdateMsecs: number;

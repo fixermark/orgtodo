@@ -1,7 +1,7 @@
 /** Acceptable updates to TODO items */
 
 import {TodoStatus} from "./Entry";
-import {WireDbFull, WireEntry} from "./Wire";
+import {WireDbFull, WireEntryUnhashed} from "./Wire";
 import {setTodoStatus} from "./Parser";
 
 import {PriorityOperations as PriorityOperationsReordering} from './Reordering';
@@ -31,8 +31,8 @@ export function todoPriorityUpdate(id: string, operation: PriorityOperations): T
 }
 
 /** Handle the update by mutating one or more entries. */
-export function handleUpdate(update: TodoUpdate, store: WireDbFull): WireEntry[] {
-  const updated: WireEntry[] = [];
+export function handleUpdate(update: TodoUpdate, store: WireDbFull): WireEntryUnhashed[] {
+  const updated: WireEntryUnhashed[] = [];
 
   switch(update.type) {
     case "todoValue":

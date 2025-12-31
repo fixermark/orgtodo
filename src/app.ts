@@ -9,7 +9,7 @@ import 'process';
 import { readEntries, replaceEntries, topqueue, ViewSort} from './db/Db';
 import { checkAndMigrate } from './db/Migrate';
 import { parse } from './orgdata/Parser';
-import { handleTaskPost, handleNewTask } from './handlers';
+import { handleTasksGet, handleTaskPost, handleTaskPut, handleNewTask } from './handlers';
 
 const server = express();
 server.use(express.text({type: "*/*"}));
@@ -23,27 +23,21 @@ server.use(express.static((frontendJsPath)));
 
 server.use("/public", express.static((frontendPublicPath)));
 
+server.get("/tasks", handleTasksGet);
+
 server.post("/tasks/:taskid", handleTaskPost);
-
-server.get("/tasks", async (req, res) => {
-  console.log("*** PROCESSING QUERY");
-  const entries = await readEntries(
-    req.query.sort === 'deadline' ? ViewSort.BY_DEADLINE : ViewSort.BY_PRIORITY,
-    req.query.showDone === 'true'
-  );
-
-  res.json(entries);
-});
 
 server.post("/tasks", express.text(), handleNewTask);
 
-server.put("/tasks", express.text(), async (req, res) => {
-  const entries = parse(req.body);
+server.put("/tasks", handleTaskPut);
 
-  replaceEntries(entries);
+// async (req, res) => {
+//   const entries = parse(req.body);
 
-  res.sendStatus(200);
-});
+//   replaceEntries(entries);
+
+//   res.sendStatus(200);
+// });
 
 server.get("/", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../public/index.html"));
@@ -57,4 +51,5 @@ const PORT = isNaN(MAYBE_PORT) ? 8000 : MAYBE_PORT;
 checkAndMigrate().then(() => {
   server.listen(PORT);
 },
-  (err: any) => {console.error(`Failure to set up database: ${err}`); });
+  (err: any) => {console.error(`Failure to set up database: ${err}`);}
+);

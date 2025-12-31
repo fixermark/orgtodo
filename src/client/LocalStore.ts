@@ -2,11 +2,17 @@ import 'react';
 import {useState, useEffect} from 'react';
 
 import {TodoUpdate, handleUpdate} from '../orgdata/Updates';
-import {WireDbFull, WireEntry} from '../orgdata/Wire';
+import {TasksResolution, WireDbUpdate, WireDbSummary, WireDbFull, WireEntry} from '../orgdata/Wire';
 import {hashForText} from '../orgdata/Hash';
 import {Entry} from '../orgdata/Entry';
 import {parse} from '../orgdata/Parser';
 const LOCAL_STORE_KEY = "tasks";
+
+
+/** return true if there is state in the store. */
+function checkStore(): boolean {
+  return !!localStorage.getItem(LOCAL_STORE_KEY);
+}
 
 /** Load store from local wire, if possible */
 function loadStore(): WireDbFull {
@@ -26,8 +32,35 @@ function saveStore(store: WireDbFull) {
   localStorage.setItem(LOCAL_STORE_KEY, JSON.stringify(store));
 }
 
-/** update the store after fetching a hash */
-async function updateStore(updateTime: number, entries: Entry[], setStore: (store: WireDbFull) => void) {
+/** Fetch the db state at a particular resolution. */
+async function fetchDb(resolution: TasksResolution): Promise<any> {
+  const response = await fetch(`/tasks?resolution=${resolution}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get db: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function fetchDbUpdate(): Promise<WireDbUpdate> {
+  return await fetchDb("update") as WireDbUpdate;
+}
+
+async function fetchDbSummary(): Promise<WireDbSummary> {
+  return await fetchDb("summary") as WireDbSummary;
+}
+
+async function fetchDbFull(): Promise<WireDbFull> {
+  return await fetchDb("full") as WireDbFull;
+}
+
+/** Update the store with a full set of entries and replace server state. */
+async function updateStore(updateTime: number, entries: Entry[], setStore: (store: WireDbFull) => void): Promise<void> {
 
   const newEntries: Record<string, WireEntry> = {};
   for (const entry of entries) {
@@ -46,6 +79,16 @@ async function updateStore(updateTime: number, entries: Entry[], setStore: (stor
 
   setStore(newStore);
   saveStore(newStore);
+  const response = await fetch("/tasks", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newStore),
+  });
+  if (!response.ok) {
+    throw new Error(`Unable to sync db to server. Status: ${response.status}`);
+  }
 }
 
 
@@ -65,11 +108,21 @@ export function useLocalStore(): LocalStore {
 
   useEffect(() => {
     console.log("Loading from local store...");
-    debugger;
+
+    async function loadFullDb(): Promise<void> {
+      const fullDb = await fetchDbFull();
+      setStore(fullDb);
+      saveStore(fullDb);
+    }
+
     if (store.epochUpdateMsecs === 0) {
-      // TODO: ideally, skip loading if local store completely empty and just get full dump.
-      setStore(loadStore());
-      // TODO: sync local store against remote store.
+      if (checkStore()) {
+	setStore(loadStore());
+	// TODO: Confirm against DB that store is up to date.
+      } else {
+	console.log("No local DB present. Fetching full store from server...");
+	loadFullDb();
+      }
     }
   }, []);
 
@@ -82,9 +135,13 @@ export function useLocalStore(): LocalStore {
       async function asyncUpdate() {
 	const timestamp = new Date().valueOf();
 	for (const entry of entriesToUpdate) {
-	  entry.hash = await hashForText(entry.fulltext);
-	  entry.epochUpdateMsecs=timestamp;
-	  store.entries[entry.id] = entry;
+	  const newEntry = {
+	    id: entry.id,
+	    fulltext: entry.fulltext,
+	    hash: await hashForText(entry.fulltext),
+	    epochUpdateMsecs: timestamp,
+	  };
+	  store.entries[entry.id] = newEntry;
 	}
 	const newStore = {
 	  epochUpdateMsecs: timestamp,
@@ -101,7 +158,7 @@ export function useLocalStore(): LocalStore {
       const entries = parse(tasks);
       const updateTime = new Date().valueOf();
 
-
+      // TODO: track updateStore requires network activity
       updateStore(updateTime, entries, setStore);
     },
   };

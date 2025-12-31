@@ -1,4 +1,4 @@
-import { connection, fulltextToEntry, initTasksTable, replaceEntries, TASK_COLUMN_NAMES } from './Db';
+import { connection, fulltextToEntry, initTables, replaceEntries, TASK_COLUMN_NAMES } from './Db';
 import * as sqlite from 'sqlite';
 
 
@@ -13,7 +13,7 @@ export async function checkAndMigrate() {
 
   if (!table_names.includes("tasks")) {
     console.log("Missing tasks table; recreating.");
-    await initTasksTable(db);
+    await initTables(db);
   }
 
   console.log("Confirming tasks table schema is correct...");
@@ -46,8 +46,8 @@ async function migrate(db: sqlite.Database) {
   const entries = entryText.map((singleEntryText) => fulltextToEntry(singleEntryText.fulltext));
 
   await db.run("DROP TABLE tasks");
-
-  await initTasksTable(db);
+  await db.run("DROP TABLE meta");
+  await initTables(db);
 
   await replaceEntries(entries);
 }

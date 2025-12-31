@@ -4,6 +4,7 @@
  */
 
 import {Entry, TodoStatus} from "../orgdata/Entry";
+import {WireDbFull} from '../orgdata/Wire';
 import {
   fulltextToLines,
   parse,
@@ -34,20 +35,24 @@ export enum ViewSort {
   BY_DEADLINE,
 }
 
-export const TASK_COLUMN_NAMES = ['id', 'done', 'priority', 'deadline', 'fulltext'];
+export const TASK_COLUMN_NAMES = ['id', 'hash', 'epochUpdateMsecs', 'fulltext'];
 
 
 
 /** Create an empty `tasks` table. */
-export async function initTasksTable(db: sqlite.Database) {
+export async function initTables(db: sqlite.Database) {
   // in db, deadline is Javascript-style msec since Epoch
     await db.run(`
     CREATE TABLE IF NOT EXISTS tasks (
-      id STRING PRIMARY KEY,
-      done BOOLEAN,
-      priority INT,
-      deadline INTEGER,
-      fulltext STRING
+      id TEXT PRIMARY KEY,
+      hash TEXT,
+      epochUpdateMsecs INTEGER,
+      fulltext TEXT
+    )`);
+    await db.run(`
+    CREATE TABLE IF NOT EXISTS meta (
+      id INTEGER PRIMARY KEY,
+      epochUpdateMsecs INTEGER
     )`);
 }
 
@@ -56,7 +61,7 @@ export async function connection(): Promise<sqlite.Database> {
   if (!fs.existsSync(DB_PATH)) {
     console.log("Creating new database and tasks table.");
     const db = await sqlite.open({filename: DB_PATH, driver: Database});
-    await initTasksTable(db);
+    await initTables(db);
   }
 
   return await sqlite.open({filename: DB_PATH, driver: Database});
@@ -87,6 +92,26 @@ export async function readEntries(sort: ViewSort = ViewSort.BY_PRIORITY, showDon
   console.log(`Todos: ${rows.map((row) => row.done)}`);
 
   return rows.map((row) => fulltextToEntry(row.fulltext));
+}
+
+/** Replace full DB state with new state. */
+export async function replaceDb(wireDb: WireDbFull): Promise<void> {
+  const db = await connection();
+
+  await db.run("DELETE FROM tasks");
+
+  await db.run("DELETE FROM meta");
+
+  await db.run("INSERT INTO meta (id, epochUpdateMsecs) VALUES (1, ?)", wireDb.epochUpdateMsecs);
+
+  for (const entry of Object.values(wireDb.entries)) {
+    await db.run("INSERT INTO tasks (id, fulltext, hash, epochUpdateMsecs) VALUES (?,?,?,?)", [
+      entry.id,
+      entry.fulltext,
+      entry.hash,
+      entry.epochUpdateMsecs,
+    ]);
+  }
 }
 
 /** Replace all entries in the database. */
