@@ -7,7 +7,7 @@ import {TodoStatus} from './orgdata/Entry';
 
 import {parseEntry} from './orgdata/Parser';
 
-import {connection, fulltextToEntry, topqueue, bury, setTodoStatus, bumpPriority, PriorityBump, addTask, replaceDb} from './db/Db';
+import {connection, fulltextToEntry, topqueue, bury, setTodoStatus, bumpPriority, PriorityBump, addTask, replaceDb, upsertTodo} from './db/Db';
 
 /** Handle fetching the tasks table state */
 export async function handleTasksGet(req: express.Request, res: express.Response): Promise<void> {
@@ -110,17 +110,14 @@ async function handleChangeTaskPriority(req: express.Request, res: express.Respo
 /** Handle a post to a task with a specific ID. */
 export async function handleTaskPost(req: express.Request, res: express.Response): Promise<void> {
 
-  if (req.query.todo) {
-    await handleSetTaskTodo(req, res);
-    return;
-  }
+  const task = JSON.parse(req.body) as WireEntry;
 
-  if (req.query.priority) {
-    await handleChangeTaskPriority(req, res);
-    return;
-  }
+  const now = new Date().valueOf();
 
-  res.status(400).send("One of 'priority' or 'todo' parameter required");
+  // TODO: check side-channel hash for conflict
+  upsertTodo(task, now, undefined);
+
+  res.sendStatus(200);
 }
 
 /** Handle replacing all tasks with a new list of tasks. */

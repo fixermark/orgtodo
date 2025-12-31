@@ -4,7 +4,7 @@
  */
 
 import {Entry, TodoStatus} from "../orgdata/Entry";
-import {WireDbFull} from '../orgdata/Wire';
+import {WireDbFull, WireEntry} from '../orgdata/Wire';
 import {
   fulltextToLines,
   parse,
@@ -112,6 +112,46 @@ export async function replaceDb(wireDb: WireDbFull): Promise<void> {
       entry.epochUpdateMsecs,
     ]);
   }
+}
+
+/** Upsert TODO item into the DB if the expected hash is missing or matches existing hash.
+ *
+ * @param entry The entry to change or add
+ * @param timestampMsecs Timestamp this change is being added in.
+ * @param hash Hash from the client of the entry that was modified. There is a conflict
+ *   if this does not match the current hash.
+ * @returns Undefined on success. On conflict, returns the existing conflicted WireEntry.
+ */
+export async function upsertTodo(
+  entry: WireEntry,
+  timestampMsecs: number,
+  hash: string | undefined
+): Promise<WireEntry | undefined> {
+  const db = await connection();
+
+  const existing = await db.all('SELECT id, hash, epochUpdateMsecs, fulltext FROM tasks WHERE id=?', entry.id);
+
+  if (existing.length) {
+    if (hash && hash !== existing[0].hash) {
+      // Conflict detected.
+      return {
+	id: existing[0].id,
+	hash: existing[0].hash,
+	epochUpdateMsecs: existing[0].epochUpdateMsecs,
+	fulltext: existing[0].fulltext,
+      };
+    }
+  }
+
+  await db.run('INSERT OR REPLACE INTO tasks (id, hash, epochUpdateMsecs, fulltext) VALUES (?,?,?,?)', [
+    entry.id,
+    entry.hash,
+    timestampMsecs,
+    entry.fulltext,
+  ]);
+  await db.run('INSERT OR REPLACE INTO meta (id, epochUpdateMsecs) VALUES (1, ?)', [timestampMsecs]);
+
+  return undefined;
 }
 
 /** Replace all entries in the database. */

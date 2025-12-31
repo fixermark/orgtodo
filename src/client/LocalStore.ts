@@ -1,6 +1,7 @@
 import 'react';
 import {useState, useEffect} from 'react';
 
+import {remoteStore} from './RemoteStore';
 import {TodoUpdate, handleUpdate} from '../orgdata/Updates';
 import {TasksResolution, WireDbUpdate, WireDbSummary, WireDbFull, WireEntry} from '../orgdata/Wire';
 import {hashForText} from '../orgdata/Hash';
@@ -8,6 +9,19 @@ import {Entry} from '../orgdata/Entry';
 import {parse} from '../orgdata/Parser';
 const LOCAL_STORE_KEY = "tasks";
 
+interface EntryToSend {
+  entry: WireEntry;
+  oldHash: string | undefined;
+}
+
+/** The local store and functions to manipulate it */
+export interface LocalStore {
+  store: WireDbFull;
+  connections: number;
+  updateTask: (update: TodoUpdate) => void;
+  replaceTasks: (tasks: string) => void;
+  // TODO delete task
+}
 
 /** return true if there is state in the store. */
 function checkStore(): boolean {
@@ -60,7 +74,7 @@ async function fetchDbFull(): Promise<WireDbFull> {
 }
 
 /** Update the store with a full set of entries and replace server state. */
-async function updateStore(updateTime: number, entries: Entry[], setStore: (store: WireDbFull) => void): Promise<void> {
+async function updateStore(updateTime: number, entries: Entry[], setStore: (store: WireDbFull) => void, setConnections: (count: number) => void): Promise<void> {
 
   const newEntries: Record<string, WireEntry> = {};
   for (const entry of entries) {
@@ -79,25 +93,9 @@ async function updateStore(updateTime: number, entries: Entry[], setStore: (stor
 
   setStore(newStore);
   saveStore(newStore);
-  const response = await fetch("/tasks", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(newStore),
-  });
-  if (!response.ok) {
-    throw new Error(`Unable to sync db to server. Status: ${response.status}`);
-  }
-}
-
-
-/** The local store and functions to manipulate it */
-export interface LocalStore {
-  store: WireDbFull;
-  updateTask: (update: TodoUpdate) => void;
-  replaceTasks: (tasks: string) => void;
-  // TODO delete task
+  const remote = remoteStore();
+  await remote.replaceRemoteStore(newStore);
+  setConnections(remote.count());
 }
 
 export function useLocalStore(): LocalStore {
@@ -105,6 +103,8 @@ export function useLocalStore(): LocalStore {
     epochUpdateMsecs: 0,
     entries: {},
   });
+
+  const [connections, setConnections] = useState<number>(0);
 
   useEffect(() => {
     console.log("Loading from local store...");
@@ -128,12 +128,15 @@ export function useLocalStore(): LocalStore {
 
   return {
     store: store,
+    connections: connections,
     updateTask: (update: TodoUpdate) => {
       // TODO: get current hash of task before updating (or 0 if task missing).
       const entriesToUpdate = handleUpdate(update, store);
 
       async function asyncUpdate() {
 	const timestamp = new Date().valueOf();
+	const entriesToSend: EntryToSend[] = [];
+
 	for (const entry of entriesToUpdate) {
 	  const newEntry = {
 	    id: entry.id,
@@ -141,7 +144,12 @@ export function useLocalStore(): LocalStore {
 	    hash: await hashForText(entry.fulltext),
 	    epochUpdateMsecs: timestamp,
 	  };
+	  let oldHash: string | undefined = undefined;
+	  if (store.entries[entry.id]) {
+	    oldHash = store.entries[entry.id].hash;
+	  }
 	  store.entries[entry.id] = newEntry;
+	  entriesToSend.push({entry: newEntry, oldHash: oldHash});
 	}
 	const newStore = {
 	  epochUpdateMsecs: timestamp,
@@ -150,7 +158,12 @@ export function useLocalStore(): LocalStore {
 
 	setStore(newStore);
 	saveStore(newStore);
-	// TODO: queue task to send to server with previous hash.
+
+	const remote = remoteStore();
+	for (const entry of entriesToSend) {
+	  await remote.send(entry.entry, entry.oldHash);
+	  setConnections(remote.count());
+	}
       }
       asyncUpdate();
     },
@@ -158,8 +171,7 @@ export function useLocalStore(): LocalStore {
       const entries = parse(tasks);
       const updateTime = new Date().valueOf();
 
-      // TODO: track updateStore requires network activity
-      updateStore(updateTime, entries, setStore);
+      updateStore(updateTime, entries, setStore, setConnections);
     },
   };
 }
