@@ -51,3 +51,14 @@
   min-height: 25px;
   min-width: 25px;
 }
+
+.changebug {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  background-color: #ff3333;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  border: #ff3333 2px solid;
+}

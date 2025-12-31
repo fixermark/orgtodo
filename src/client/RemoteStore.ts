@@ -29,8 +29,9 @@ export class RemoteStore {
   }
 
   /** Send the entry, using its old hash to check for intermediary server-side changes. */
-  async send(entry: WireEntry, oldHash: string | undefined): Promise<void> {
+  async send(entry: WireEntry, oldHash: string | undefined, updateCount: (newCount: number) => void): Promise<void> {
     const connectionId = this.logOutgoing({entry: entry});
+    updateCount(this.count());
 
     // TDOO: conflict detection: send hash also, if set.
     try {
@@ -48,12 +49,14 @@ export class RemoteStore {
       }
     } finally {
       this.endOutgoing(connectionId);
+      updateCount(this.count());
     }
   }
 
   /** Replace the entire remote store with a new value */
-  async replaceRemoteStore(store: WireDbFull): Promise<void> {
+  async replaceRemoteStore(store: WireDbFull, updateCount: (newCount: number) => void): Promise<void> {
     const connectionId = this.logOutgoing({store: store});
+    updateCount(this.count());
     try {
       const response = await fetch("/tasks", {
 	method: "PUT",
@@ -67,6 +70,7 @@ export class RemoteStore {
       }
     } finally {
       this.endOutgoing(connectionId);
+      updateCount(this.count());
     }
   }
 }

@@ -94,8 +94,7 @@ async function updateStore(updateTime: number, entries: Entry[], setStore: (stor
   setStore(newStore);
   saveStore(newStore);
   const remote = remoteStore();
-  await remote.replaceRemoteStore(newStore);
-  setConnections(remote.count());
+  await remote.replaceRemoteStore(newStore, setConnections);
 }
 
 export function useLocalStore(): LocalStore {
@@ -161,8 +160,7 @@ export function useLocalStore(): LocalStore {
 
 	const remote = remoteStore();
 	for (const entry of entriesToSend) {
-	  await remote.send(entry.entry, entry.oldHash);
-	  setConnections(remote.count());
+	  await remote.send(entry.entry, entry.oldHash, setConnections);
 	}
       }
       asyncUpdate();

@@ -8,6 +8,7 @@ import {Entry, TodoStatus} from "../orgdata/Entry";
 import {WireEntry} from '../orgdata/Wire';
 import {OrgImporter} from "./OrgImporter";
 import {NewTask} from "./NewTask";
+import {ChangeBug} from "./ChangeBug";
 import {todoStatusUpdate, PriorityOperations, todoPriorityUpdate} from "../orgdata/Updates";
 import 'react';
 import {withErrorBoundary, useErrorBoundary} from 'react-use-error-boundary';
@@ -122,6 +123,7 @@ export const App = () => {
 
   return (
     <div>
+      <ChangeBug count={localStore.connections}/>
       { errMsg && <div className="error-banner">
 		  {errMsg} <button onClick={resetError}>X</button>
 		  </div>
