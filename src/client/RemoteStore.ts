@@ -7,6 +7,11 @@ interface OutgoingMessage {
   store?: WireDbFull;
 }
 
+/** Debug function for testing */
+function sleep(msec: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, msec));
+}
+
 export class RemoteStore {
   nextId: number = 1;
   outgoings: Record<number, OutgoingMessage> = {};
@@ -21,11 +26,23 @@ export class RemoteStore {
     const connectionId = this.nextId;
     this.nextId += 1;
     this.outgoings[connectionId] = outgoing;
+
+    window.onbeforeunload = this.blockUnload;
+
     return connectionId;
   }
 
   endOutgoing(id: number) {
     delete this.outgoings[id];
+
+    if (!Object.values(this.outgoings).length) {
+      window.onbeforeunload = null;
+    }
+  }
+
+  /** Block unloading the page. */
+  blockUnload() {
+    return "Database is not synchronized with local TODO changes yet. Are you sure you want to leave?";
   }
 
   /** Send the entry, using its old hash to check for intermediary server-side changes. */
@@ -48,6 +65,8 @@ export class RemoteStore {
 	throw new Error(`Error sending update to server: ${result.status}`);
       }
     } finally {
+      // Uncomment this line to test behavior in high-latency connections
+      // await sleep(3000);
       this.endOutgoing(connectionId);
       updateCount(this.count());
     }
