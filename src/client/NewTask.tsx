@@ -3,10 +3,10 @@ import {useState, useCallback} from "react";
 import React from "react";
 
 export interface NewTaskProps {
-  onRefreshEntries(): void;
+  onNewTask(headline: string, body: string): void;
 }
 
-export const NewTask: React.FC<NewTaskProps> = ({onRefreshEntries}) => {
+export const NewTask: React.FC<NewTaskProps> = ({onNewTask}) => {
   const [headlineText, setHeadlineText] = useState<string>("");
   const [bodyText, setBodyText] = useState<string>("");
 
@@ -14,25 +14,8 @@ export const NewTask: React.FC<NewTaskProps> = ({onRefreshEntries}) => {
   const onChangeBodyText = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => setBodyText(event.target.value), [setBodyText]);
 
   const onSubmit = useCallback(() => {
-    const sendNewTask = async () => {
-      const fulltext = `* ${headlineText}\n${bodyText}\n`;
-      const response = await fetch("/tasks", {
-	method: 'POST',
-	headers: {
-	  'Content-Type': 'text/plain',
-	},
-	body: fulltext,
-      });
-
-      if (!response.ok) {
-	throw new Error(`Failed to create new task: ${response.status}`);
-      }
-
-      onRefreshEntries();
-    };
-
-    sendNewTask();
-  }, [headlineText, bodyText]);
+  onNewTask(headlineText, bodyText);
+  }, [headlineText, bodyText, onNewTask]);
 
   return (
     <div>

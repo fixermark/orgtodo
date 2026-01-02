@@ -6,7 +6,7 @@ import {TodoUpdate, handleUpdate} from '../orgdata/Updates';
 import {TasksResolution, WireDbUpdate, WireDbSummary, WireDbFull, WireEntry} from '../orgdata/Wire';
 import {hashForText} from '../orgdata/Hash';
 import {Entry} from '../orgdata/Entry';
-import {parse} from '../orgdata/Parser';
+import {parse, parseEntry, fulltextToLines} from '../orgdata/Parser';
 const LOCAL_STORE_KEY = "tasks";
 
 interface EntryToSend {
@@ -21,6 +21,16 @@ export interface LocalStore {
   updateTask: (update: TodoUpdate) => void;
   replaceTasks: (tasks: string) => void;
   // TODO delete task
+}
+
+/** Find lowest priority task */
+export function findMinPriority(store: WireDbFull): number {
+  let minEntry = Infinity;
+  for (const entry of Object.values(store.entries)) {
+    const parsedEntry = parseEntry(fulltextToLines(entry.fulltext));
+    minEntry = Math.min(parsedEntry.summary.priority, minEntry);
+  }
+  return minEntry;
 }
 
 /** return true if there is state in the store. */

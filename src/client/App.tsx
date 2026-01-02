@@ -3,18 +3,18 @@
  * Licensed under the MIT License (https://opensource.org/licenses/MIT)
  */
 
-import {fulltextToLines, parse, parseEntry, getDeadline} from "../orgdata/Parser";
+import {fulltextToLines, parse, parseEntry, getDeadline, setPriority} from "../orgdata/Parser";
 import {Entry, TodoStatus} from "../orgdata/Entry";
 import {WireEntry} from '../orgdata/Wire';
 import {OrgImporter} from "./OrgImporter";
 import {NewTask} from "./NewTask";
 import {ChangeBug} from "./ChangeBug";
-import {todoStatusUpdate, PriorityOperations, todoPriorityUpdate} from "../orgdata/Updates";
+import {newTodo, todoStatusUpdate, PriorityOperations, todoPriorityUpdate} from "../orgdata/Updates";
 import 'react';
 import {withErrorBoundary, useErrorBoundary} from 'react-use-error-boundary';
 
 import {useEffect, useState, useCallback} from 'react';
-import {useLocalStore} from './LocalStore';
+import {useLocalStore, findMinPriority} from './LocalStore';
 
 type SortColumn = "priority" | "deadline";
 
@@ -113,6 +113,21 @@ export const App = () => {
     localStore.updateTask(todoPriorityUpdate(id, operation));
   }, [localStore]);
 
+  const onNewTask = useCallback((headlineText: string, bodyText: string) => {
+    const entry = parseEntry(fulltextToLines(`* ${headlineText}\n${bodyText}`));
+
+    let minPriority = findMinPriority(localStore.store);
+
+    if (minPriority === Infinity) {
+      minPriority = 1;
+    }
+
+    entry.fulltext = setPriority(entry.fulltext, minPriority - 1);
+    entry.summary.priority = minPriority - 1;
+
+    localStore.updateTask(newTodo(entry));
+  }, [localStore]);
+
   const onReplaceEntries = useCallback((newEntries: string) =>
     localStore.replaceTasks(newEntries), [localStore]);
 
@@ -161,7 +176,7 @@ export const App = () => {
 	{showOrgImporter && <OrgImporter storeEntries={Object.values(localStore.store.entries)} onReplaceEntries={onReplaceEntries}/>}
       </div>
       <div>
-	{showNewTask && <NewTask onRefreshEntries={() => {}}/>}
+	{showNewTask && <NewTask onNewTask={onNewTask}/>}
       </div>
     </div>
   );

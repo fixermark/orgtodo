@@ -47,7 +47,7 @@ export async function initTables(db: sqlite.Database) {
       id TEXT PRIMARY KEY,
       hash TEXT,
       epochUpdateMsecs INTEGER,
-      fulltext TEXT
+      fulltext TEXT NOT NULL
     )`);
     await db.run(`
     CREATE TABLE IF NOT EXISTS meta (

@@ -1,6 +1,6 @@
 /** Acceptable updates to TODO items */
 
-import {TodoStatus} from "./Entry";
+import {TodoStatus, Entry} from "./Entry";
 import {WireDbFull, WireEntryUnhashed} from "./Wire";
 import {setTodoStatus} from "./Parser";
 
@@ -9,11 +9,18 @@ import {reorderTask} from './Reordering';
 
 export type PriorityOperations = PriorityOperationsReordering;
 
-export type UpdateType = "todoValue" | "priority";
+export type UpdateType = "newTodo" | "todoValue" | "priority";
 
 export interface TodoUpdate {
   type: UpdateType;
   properties: any;
+}
+
+export function newTodo(entry: Entry): TodoUpdate {
+  return {
+    type: "newTodo",
+    properties: { id: entry.summary.id, fulltext: entry.fulltext },
+  };
 }
 
 export function todoStatusUpdate(id: string, status: TodoStatus): TodoUpdate {
@@ -35,6 +42,8 @@ export function handleUpdate(update: TodoUpdate, store: WireDbFull): WireEntryUn
   const updated: WireEntryUnhashed[] = [];
 
   switch(update.type) {
+    case "newTodo":
+      return [{id: update.properties.id, fulltext: update.properties.fulltext}];
     case "todoValue":
       let entry = store.entries[update.properties.id];
       if (!entry) {

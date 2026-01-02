@@ -71,6 +71,9 @@ export function jsDatetimeToOrg(jsDt: Date): string {
 
 /** Split out full text into individual lines */
 export function fulltextToLines(fulltext: string): string[] {
+  if (!fulltext) {
+    fulltext = "";
+  }
   const result = fulltext.split("\n").map((line: string) => line + "\n");
   result[result.length - 1] = result[result.length - 1].slice(0,-1);
 
@@ -290,6 +293,9 @@ export function parseEntry(content: string[]): Entry {
 /** Build a list of entries from an incoming text. */
 export function parse(contentString: string): Entry[] {
 
+  if (!contentString) {
+    contentString = "";
+  }
   const content = contentString.split("\n").map((x) => x + "\n");
 
   let entries: Entry[] = [];
