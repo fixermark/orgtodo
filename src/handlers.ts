@@ -114,8 +114,17 @@ export async function handleTaskPost(req: express.Request, res: express.Response
 
   const now = new Date().valueOf();
 
-  // TODO: check side-channel hash for conflict
-  upsertTodo(task, now, undefined);
+  const oldHash = req.query.oldhash;
+
+  const maybeWireEntry = await upsertTodo(task, now, oldHash as string | undefined);
+
+  if (maybeWireEntry) {
+    console.warn(`Entry ${maybeWireEntry.id}: Hash of ${maybeWireEntry.hash} does not match ${oldHash}; sending 409.`);
+    // old hash didn't align with the currently-stored hash value so the upsert was rejected.
+    // 409 conflict this change with a copy of the in-database entry.
+    res.status(409).json(maybeWireEntry);
+    return;
+  }
 
   res.sendStatus(200);
 }

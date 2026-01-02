@@ -51,8 +51,9 @@ export class RemoteStore {
     updateCount(this.count());
 
     // TDOO: conflict detection: send hash also, if set.
+    const hashFragment = oldHash ? `?oldhash=${oldHash}` : "";
     try {
-      const result = await fetch(`/tasks/${entry.id}`, {
+      const result = await fetch(`/tasks/${entry.id}${hashFragment}`, {
 	method: 'POST',
 	headers: {
 	  "Content-Type": "application/json",
@@ -61,6 +62,11 @@ export class RemoteStore {
       });
 
       if (!result.ok) {
+	if (result.status === 409) {
+	  // TODO(markt) Better 409 handling; this should trigger a conflict resolve flow.
+	  alert("409 CONFLICT on updating TODO element. Reload page to get latest state.");
+	  return;
+	}
 	// TODO 409 conflict resolution
 	throw new Error(`Error sending update to server: ${result.status}`);
       }
