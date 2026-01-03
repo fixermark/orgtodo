@@ -132,6 +132,10 @@ export async function upsertTodo(
   const existing = await db.all('SELECT id, hash, epochUpdateMsecs, fulltext FROM tasks WHERE id=?', entry.id);
 
   if (existing.length) {
+    if (entry.hash === existing[0].hash) {
+      // The existing DB entry already matches this TODO entry. We can bail early without a DB change.
+      return undefined;
+    }
     if (hash && hash !== existing[0].hash) {
       // Conflict detected.
       return {
