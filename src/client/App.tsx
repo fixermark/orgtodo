@@ -9,6 +9,8 @@ import {WireEntry} from '../orgdata/Wire';
 import {OrgImporter} from "./OrgImporter";
 import {NewTask} from "./NewTask";
 import {ChangeBug} from "./ChangeBug";
+import {DetailView, formatDeadline} from "./DetailView";
+import {TodoLine} from "./TodoLine";
 import {newTodo, todoStatusUpdate, PriorityOperations, todoPriorityUpdate} from "../orgdata/Updates";
 import 'react';
 import {withErrorBoundary, useErrorBoundary} from 'react-use-error-boundary';
@@ -18,10 +20,6 @@ import {useLocalStore, findMinPriority} from './LocalStore';
 
 type SortColumn = "priority" | "deadline";
 
-/** Compute class name for the TODO line */
-function todoClassName(entry: Entry): string {
-  return `todoline ${entry.summary.todo === TodoStatus.DONE ? "todo-done" : "todo-todo"}`;
-}
 
 /** Marshalls the JSON over the wire properly into an Entry object. */
 function marshallEntryJson(entry: any): Entry {
@@ -29,17 +27,6 @@ function marshallEntryJson(entry: any): Entry {
   return entry as Entry;
 }
 
-function formatDeadline(deadline: Date): string {
-  if (!deadline.getHours() && !deadline.getMinutes()) {
-    return deadline.toDateString();
-  }
-  return deadline.toString();
-}
-
-/** Compute  text for the TODO line */
-function todoText(entry: Entry): string {
-  return entry.summary.todo === TodoStatus.DONE ? "DONE" : "TODO";
-}
 
 function messageForError(err: unknown): string | undefined {
   if (typeof err === "undefined") {
@@ -93,6 +80,8 @@ export const App = () => {
 
   const [showNewTask, setShowNewTask] = useState<boolean>(false);
 
+  const [detailEntryId, setDetailEntryId] = useState<string | null>(null);
+
   const entries = localStoreToEntries(Object.values(localStore.store.entries), sortBy, hideDone);
 
   const onToggleSortBy = useCallback(() => {
@@ -136,8 +125,15 @@ export const App = () => {
 
   const errMsg = messageForError(error);
 
+  let detailEntry: Entry | undefined = undefined;
+
+  if (detailEntryId) {
+    detailEntry = entries.find((entry) => entry.summary.id === detailEntryId);
+  }
+
   return (
     <div>
+      {detailEntry && <DetailView entry={detailEntry} onToggleTodo={onToggleTodo} onDismiss={() => setDetailEntryId(null)} />}
       <ChangeBug count={localStore.connections}/>
       { errMsg && <div className="error-banner">
 		  {errMsg} <button onClick={resetError}>X</button>
@@ -148,15 +144,13 @@ export const App = () => {
       <div className="chips">
 	{!entries.length ? "No entries." : entries.map((entry) =>
 	  <div className="chip">
-	    <div
-              className={todoClassName(entry)}
-              onClick={() => onToggleTodo(entry.summary.id, entry.summary.todo === TodoStatus.DONE ? TodoStatus.TODO : TodoStatus.DONE)}>
-              {todoText(entry)}
+	    <TodoLine entry={entry} onToggleTodo={onToggleTodo} />
+	    <div onClick={() => setDetailEntryId(entry.summary.id)}>
+              <div className="headline">{entry.summary.headline}</div>
+	      <div className="taskId">{entry.summary.id}</div>
+	      {entry.summary.deadline && <div className="deadline">Deadline: {formatDeadline(entry.summary.deadline)}</div>}
+              <div className="fulltext"><pre>{entry.summary.body}</pre></div>
             </div>
-            <div className="headline">{entry.summary.headline}</div>
-	    <div className="taskId">{entry.summary.id}</div>
-	    {entry.summary.deadline && <div className="deadline">Deadline: {formatDeadline(entry.summary.deadline)}</div>}
-            <div className="fulltext"><pre>{entry.summary.body}</pre></div>
 	    <div className="buttonPanel">
               <button onClick={() => onSetPriority(entry.summary.id, "topqueue")}>&#x219F;</button>
               <button onClick={() => onSetPriority(entry.summary.id, "up1")}>&#x2191;</button>

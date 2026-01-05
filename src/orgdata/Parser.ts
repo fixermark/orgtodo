@@ -283,6 +283,7 @@ export function parseEntry(content: string[]): Entry {
       headline: headline,
       deadline: deadline,
       todo: todoState,
+      firstBodyLine: firstBodyLine,
       body: bodyLines.join(""),
       priority: priority === undefined ? -1 : priority,
     },

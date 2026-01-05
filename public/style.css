@@ -1,3 +1,29 @@
+.dialog-background {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #99999966;
+}
+
+.detail-view {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  right: 5px;
+  bottom: 5px;
+  padding: 5px;
+  background-color: white;
+  border: black 2px solid;
+  border-radius: 15px 0px 15px 0px;
+}
+
+.detail-body {
+  font-family: monospace;
+  white-space: pre;
+}
+
 .chips {
   display: flex;
   flex-flow: row wrap;
@@ -25,28 +51,28 @@
   background-color: #99FF99;
 }
 
-.chip > .headline {
+.headline {
   font-size: 18pt;
   font-weight: bold;
   align: center;
 }
 
-.chip > .deadline {
+.deadline {
   font-size: 0.9em;
   font-weight: bold;
   font-style: italic;
   color: #993333;
 }
-.chip > .taskId {
+.taskId {
   color: #999999;
   font-size: 7pt;
 }
 
-.chip > .fulltext > pre {
+.fulltext > pre {
   white-space: pre-wrap;
 }
 
-.chip > .buttonPanel > button {
+.buttonPanel > button {
   margin: 5px;
   min-height: 25px;
   min-width: 25px;
