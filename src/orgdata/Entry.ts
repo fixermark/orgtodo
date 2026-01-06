@@ -15,7 +15,6 @@ export interface EntryProperties {
   headline: string;
   deadline: Date | undefined;
   priority: number;
-  firstBodyLine: number;  //< First line (0-index) of the body
   body: string;
 }
 

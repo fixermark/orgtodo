@@ -19,9 +19,9 @@ const pkgdef :Spk.PackageDefinition = (
 
     appTitle = (defaultText = "Org Time Tracker"),
 
-    appVersion = 17,  # Increment this for every release.
+    appVersion = 18,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "0.1.0"),
+    appMarketingVersion = (defaultText = "0.1.1"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 

@@ -2,14 +2,14 @@
 
 import {TodoStatus, Entry} from "./Entry";
 import {WireDbFull, WireEntryUnhashed} from "./Wire";
-import {setTodoStatus} from "./Parser";
+import {replaceBody, setTodoStatus} from "./Parser";
 
 import {PriorityOperations as PriorityOperationsReordering} from './Reordering';
 import {reorderTask} from './Reordering';
 
 export type PriorityOperations = PriorityOperationsReordering;
 
-export type UpdateType = "newTodo" | "todoValue" | "priority";
+export type UpdateType = "newTodo" | "todoValue" | "priority" | "replaceBody";
 
 export interface TodoUpdate {
   type: UpdateType;
@@ -37,9 +37,15 @@ export function todoPriorityUpdate(id: string, operation: PriorityOperations): T
   };
 }
 
+export function todoReplaceBody(id: string, newBody: string): TodoUpdate {
+  return {
+    type: "replaceBody",
+    properties: { id: id, newBody: newBody},
+  };
+}
+
 /** Handle the update by mutating one or more entries. */
 export function handleUpdate(update: TodoUpdate, store: WireDbFull): WireEntryUnhashed[] {
-  const updated: WireEntryUnhashed[] = [];
 
   switch(update.type) {
     case "newTodo":
@@ -55,6 +61,14 @@ export function handleUpdate(update: TodoUpdate, store: WireDbFull): WireEntryUn
       break;
     case "priority":
       return reorderTask(store, update.properties.id, update.properties.operation);
+      break;
+    case "replaceBody":
+      entry = store.entries[update.properties.id];
+      entry.fulltext = replaceBody(
+        entry.fulltext,
+        update.properties.newBody,
+      );
+      return [entry];
       break;
     default:
       throw new Error(`unknown update type ${update.type}`);

@@ -25,12 +25,22 @@ export enum DatetimeFields {
   MINUTE=9
 }
 
+export type CheckboxStatus = "none" | "unchecked" | "checked";
+
+const CHECKBOX_SYMBOLS: Record<CheckboxStatus, string> = {
+  "none": "",
+  "unchecked": "[ ]",
+  "checked": "[X]",
+};
+
 export const DEADLINE_PATTERN = new RegExp(`^DEADLINE: <(${DATETIME_PATTERN.source})>`);
 
 const PROPERTIES_PATTERN = /^:PROPERTIES:\n/;
 const PROPERTY_PATTERN = /^:([-_A-Za-z0-9]+): +(.*)\n/;
 const DRAWER_PATTERN = /^:([-_A-Za-z0-9]+):\n/;
 const END_PATTERN = /^:END:\n/;
+const CHECKBOX_PATTERN = /^(\s*([-+*]|(\d+(\.|\))))) (\[.*?\]) (.*)/;
+const LIST_ITEM_PATTERN = /^(\s*([-+*]|(\d+(\.|\))))) (.*)/;
 
 const DAY_OF_WEEK_ORG_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -129,6 +139,74 @@ function insertProperty(content: string[], name: string, value: string) {
   content.splice(1,0, ":PROPERTIES:\n", `:${name}:       ${value}\n`, ":END:\n");
 }
 
+/** Replace the body of the entry with a new body. */
+export function replaceBody(fulltext: string, newBody: string): string {
+  const content = fulltext.split("\n");
+  const firstBodyLine = findFirstBodyLineIndex(content);
+  const preBodyLines = content.slice(0, firstBodyLine);
+
+  return preBodyLines.join("\n") + "\n" + newBody;
+}
+
+/** Convert a non-list-item line into a list item line. */
+export function makeListItem(line: string): string {
+  // Safe cast to non-null: it is impossible for this regex to fail to match.
+  const whitespaceSeparation = /(\s*)(.*)/.exec(line)!;
+
+  return whitespaceSeparation[1] + "- " + whitespaceSeparation[2];
+}
+
+/** Returns indicator of current checkbox status */
+export function checkboxStatus(line: string): CheckboxStatus {
+  const result = CHECKBOX_PATTERN.exec(line);
+  if (!result) {
+    return "none";
+  }
+  if (result[5] === "[X]") {
+    return "checked";
+  }
+
+  return "unchecked";
+}
+
+/** Get the body of the text in the checkbox line. */
+export function checkboxCopy(line: string): string {
+  const result = CHECKBOX_PATTERN.exec(line);
+  if (!result) {
+    return line;
+  }
+  return result[6];
+}
+
+/** Transform line to include a checkbox with the preferred status (or remove it). */
+export function setCheckboxStatus(line: string, status: CheckboxStatus): string {
+  let prefix = "";
+  let suffix = "";
+
+  const checkboxTest = CHECKBOX_PATTERN.exec(line);
+  if (checkboxTest) {
+    prefix = checkboxTest[1];
+    suffix = checkboxTest[6];
+  } else {
+    if (status === "none") {
+      return line;
+    }
+    const listItemTest = LIST_ITEM_PATTERN.exec(line);
+    if (listItemTest) {
+      prefix = listItemTest[1];
+      suffix = listItemTest[5];
+    }
+    else {
+      // this is not a list item; to make it one, we have to convert it to a list item,
+      return setCheckboxStatus(makeListItem(line), status);
+    }
+  }
+  if (status === "none") {
+    return prefix + " " + suffix;
+  }
+  return [prefix, CHECKBOX_SYMBOLS[status], suffix].join(" ");
+}
+
 /** Change the content string to add the property or replace the existing one. */
 function setProperty(content: string[], name: string, value: string) {
 
@@ -204,6 +282,21 @@ export function getDeadline(fulltext: string[]): Date | undefined {
     return undefined;
   }
   return orgDatetimeToJs(deadlineMatch[1]);
+}
+
+/** Get the index of the first line that's a body line. */
+function findFirstBodyLineIndex(content: string[]): number {
+  let firstLine = 1;
+  if (getDeadline(content)) {
+    firstLine++;
+  }
+
+  if (content[firstLine] === ":PROPERTIES:") {
+    for (; content[firstLine] !== ":END:" && firstLine != content.length - 1; firstLine++) { }
+    firstLine++;
+  }
+
+  return firstLine;
 }
 
 /** Build one entry from a list of the text lines in the entry. */
@@ -283,7 +376,6 @@ export function parseEntry(content: string[]): Entry {
       headline: headline,
       deadline: deadline,
       todo: todoState,
-      firstBodyLine: firstBodyLine,
       body: bodyLines.join(""),
       priority: priority === undefined ? -1 : priority,
     },

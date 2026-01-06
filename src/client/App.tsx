@@ -11,7 +11,13 @@ import {NewTask} from "./NewTask";
 import {ChangeBug} from "./ChangeBug";
 import {DetailView, formatDeadline} from "./DetailView";
 import {TodoLine} from "./TodoLine";
-import {newTodo, todoStatusUpdate, PriorityOperations, todoPriorityUpdate} from "../orgdata/Updates";
+import {
+  newTodo,
+  todoStatusUpdate,
+  PriorityOperations,
+  todoPriorityUpdate,
+  todoReplaceBody
+} from "../orgdata/Updates";
 import 'react';
 import {withErrorBoundary, useErrorBoundary} from 'react-use-error-boundary';
 
@@ -117,6 +123,10 @@ export const App = () => {
     localStore.updateTask(newTodo(entry));
   }, [localStore]);
 
+  const onReplaceBody = useCallback((entry: Entry, newBody: string) => {
+  localStore.updateTask(todoReplaceBody(entry.summary.id, newBody));
+  }, [localStore]);
+
   const onReplaceEntries = useCallback((newEntries: string) =>
     localStore.replaceTasks(newEntries), [localStore]);
 
@@ -133,7 +143,11 @@ export const App = () => {
 
   return (
     <div>
-      {detailEntry && <DetailView entry={detailEntry} onToggleTodo={onToggleTodo} onDismiss={() => setDetailEntryId(null)} />}
+      {detailEntry && <DetailView
+			entry={detailEntry}
+			onToggleTodo={onToggleTodo}
+			onReplaceBody={onReplaceBody}
+			onDismiss={() => setDetailEntryId(null)} />}
       <ChangeBug count={localStore.connections}/>
       { errMsg && <div className="error-banner">
 		  {errMsg} <button onClick={resetError}>X</button>

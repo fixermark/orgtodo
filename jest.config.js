@@ -7,5 +7,8 @@ module.exports = {
         tsconfig: './tsconfig.test.json'
       }
     ]
-  }
+  },
+  moduleNameMapper: {
+    "uuid": "<rootDir>/__mocks__/uuid.js",
+  },
 };
