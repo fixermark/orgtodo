@@ -155,6 +155,15 @@ export const App = () => {
       }
       <div><button onClick={onToggleSortBy}>Sorting by {sortBy}</button></div>
       <div><input type="checkbox" id="hideDone" onClick={onToggleHideDone} checked={hideDone} /><label htmlFor="hideDone">Hide Done</label></div>
+      <div>
+	{showNewTask && <NewTask onNewTask={onNewTask} onCloseDialog={() => setShowNewTask(false)} />}
+      </div>
+      <div>
+	<button onClick={onClickShowNewTask}>New Task</button>
+      </div>
+      <div>
+	<button onClick={onClickShowOrgImporter}>Import from org</button>
+      </div>
       <div className="chips">
 	{!entries.length ? "No entries." : entries.map((entry) =>
 	  <div className="chip">
@@ -175,16 +184,7 @@ export const App = () => {
 	)}
       </div>
       <div>
-	<button onClick={onClickShowNewTask}>New Task</button>
-      </div>
-      <div>
-	<button onClick={onClickShowOrgImporter}>Import from org</button>
-      </div>
-      <div>
 	{showOrgImporter && <OrgImporter storeEntries={Object.values(localStore.store.entries)} onReplaceEntries={onReplaceEntries}/>}
-      </div>
-      <div>
-	{showNewTask && <NewTask onNewTask={onNewTask} onCloseDialog={() => setShowNewTask(false)} />}
       </div>
     </div>
   );
