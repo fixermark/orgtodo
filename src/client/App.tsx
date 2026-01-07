@@ -184,7 +184,7 @@ export const App = () => {
 	{showOrgImporter && <OrgImporter storeEntries={Object.values(localStore.store.entries)} onReplaceEntries={onReplaceEntries}/>}
       </div>
       <div>
-	{showNewTask && <NewTask onNewTask={onNewTask}/>}
+	{showNewTask && <NewTask onNewTask={onNewTask} onCloseDialog={() => setShowNewTask(false)} />}
       </div>
     </div>
   );

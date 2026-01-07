@@ -7,6 +7,35 @@
   background-color: #99999966;
 }
 
+.dialog-foreground {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  right: 5px;
+  bottom: 5px;
+  padding: 5px;
+  background-color: white;
+  border: black 2px solid;
+  border-radius: 15px 0px 15px 0px;
+}
+
+.v-flex-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.flex-last-item {
+  flex-grow: 1;
+}
+
+.v-flex-container textarea {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: block;
+}
+
 .detail-view {
   position: absolute;
   left: 5px;
@@ -22,6 +51,11 @@
 .detail-body {
   font-family: monospace;
   white-space: pre;
+}
+
+.new-task-body {
+  width: 100%;
+  height: 100%;
 }
 
 .chips {
