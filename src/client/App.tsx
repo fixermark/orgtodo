@@ -155,9 +155,15 @@ export const App = () => {
       }
       <div><button onClick={onToggleSortBy}>Sorting by {sortBy}</button></div>
       <div><input type="checkbox" id="hideDone" onClick={onToggleHideDone} checked={hideDone} /><label htmlFor="hideDone">Hide Done</label></div>
-      <div>
-	{showNewTask && <NewTask onNewTask={onNewTask} onCloseDialog={() => setShowNewTask(false)} />}
-      </div>
+      {showNewTask && <NewTask
+			onNewTask={onNewTask}
+			onCloseDialog={() => setShowNewTask(false)}
+      />}
+      {showOrgImporter && <OrgImporter
+			    storeEntries={Object.values(localStore.store.entries)}
+			    onReplaceEntries={onReplaceEntries}
+			    onCloseDialog={() => setShowOrgImporter(false)}
+      />}
       <div>
 	<button onClick={onClickShowNewTask}>New Task</button>
       </div>
@@ -182,9 +188,6 @@ export const App = () => {
             </div>
 	  </div>
 	)}
-      </div>
-      <div>
-	{showOrgImporter && <OrgImporter storeEntries={Object.values(localStore.store.entries)} onReplaceEntries={onReplaceEntries}/>}
       </div>
     </div>
   );

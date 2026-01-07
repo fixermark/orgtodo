@@ -11,9 +11,10 @@ import {Entry} from '../orgdata/Entry';
 export interface OrgImporterProps {
   storeEntries: WireEntry[];
   onReplaceEntries(newText: string): void;
+  onCloseDialog(): void;
 }
 
-export const OrgImporter: React.FC<OrgImporterProps> = ({storeEntries, onReplaceEntries}) => {
+export const OrgImporter: React.FC<OrgImporterProps> = ({storeEntries, onReplaceEntries, onCloseDialog}) => {
   const [importText, setImportText] = useState<string>("");
 
   useEffect(() => {
@@ -26,12 +27,22 @@ export const OrgImporter: React.FC<OrgImporterProps> = ({storeEntries, onReplace
 
   const onSubmit = useCallback(() => {
     onReplaceEntries(importText);
+    onCloseDialog();
   }, [importText, onReplaceEntries]);
 
   return (
-    <div>
-      <textarea value={importText} onChange={onChange} rows={5} cols={50} />
-      <button onClick={onSubmit}>Submit</button>
+    <div className="dialog-background">
+      <div className="dialog-foreground v-flex-container">
+	<div className="flex-row">
+	  <button onClick={onCloseDialog}>X</button>
+	</div>
+	<div className="flex-row">
+	  <button onClick={onSubmit}>Submit</button>
+	</div>
+	<div className="flex-row flex-last-item">
+	  <textarea value={importText} onChange={onChange} />
+	</div>
+      </div>
     </div>
   );
 
