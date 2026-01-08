@@ -5,7 +5,7 @@
 
 /** Synchronization to remote todo database */
 
-import {WireDbFull, WireEntry} from '../orgdata/Wire';
+import { WireDbFull, WireEntry } from "../orgdata/Wire";
 
 interface OutgoingMessage {
   entry?: WireEntry;
@@ -14,7 +14,7 @@ interface OutgoingMessage {
 
 /** Debug function for testing */
 function sleep(msec: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, msec));
+  return new Promise((resolve) => setTimeout(resolve, msec));
 }
 
 export class RemoteStore {
@@ -51,29 +51,35 @@ export class RemoteStore {
   }
 
   /** Send the entry, using its old hash to check for intermediary server-side changes. */
-  async send(entry: WireEntry, oldHash: string | undefined, updateCount: (newCount: number) => void): Promise<void> {
-    const connectionId = this.logOutgoing({entry: entry});
+  async send(
+    entry: WireEntry,
+    oldHash: string | undefined,
+    updateCount: (newCount: number) => void,
+  ): Promise<void> {
+    const connectionId = this.logOutgoing({ entry: entry });
     updateCount(this.count());
 
     // TDOO: conflict detection: send hash also, if set.
     const hashFragment = oldHash ? `?oldhash=${oldHash}` : "";
     try {
       const result = await fetch(`/tasks/${entry.id}${hashFragment}`, {
-	method: 'POST',
-	headers: {
-	  "Content-Type": "application/json",
-	},
-	body: JSON.stringify(entry),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(entry),
       });
 
       if (!result.ok) {
-	if (result.status === 409) {
-	  // TODO(markt) Better 409 handling; this should trigger a conflict resolve flow.
-	  alert("409 CONFLICT on updating TODO element. Reload page to get latest state.");
-	  return;
-	}
-	// TODO 409 conflict resolution
-	throw new Error(`Error sending update to server: ${result.status}`);
+        if (result.status === 409) {
+          // TODO(markt) Better 409 handling; this should trigger a conflict resolve flow.
+          alert(
+            "409 CONFLICT on updating TODO element. Reload page to get latest state.",
+          );
+          return;
+        }
+        // TODO 409 conflict resolution
+        throw new Error(`Error sending update to server: ${result.status}`);
       }
     } finally {
       // Uncomment this line to test behavior in high-latency connections
@@ -84,19 +90,24 @@ export class RemoteStore {
   }
 
   /** Replace the entire remote store with a new value */
-  async replaceRemoteStore(store: WireDbFull, updateCount: (newCount: number) => void): Promise<void> {
-    const connectionId = this.logOutgoing({store: store});
+  async replaceRemoteStore(
+    store: WireDbFull,
+    updateCount: (newCount: number) => void,
+  ): Promise<void> {
+    const connectionId = this.logOutgoing({ store: store });
     updateCount(this.count());
     try {
       const response = await fetch("/tasks", {
-	method: "PUT",
-	headers: {
-	  "Content-Type": "application/json",
-	},
-	body: JSON.stringify(store),
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(store),
       });
       if (!response.ok) {
-	throw new Error(`Unable to sync db to server. Status: ${response.status}`);
+        throw new Error(
+          `Unable to sync db to server. Status: ${response.status}`,
+        );
       }
     } finally {
       this.endOutgoing(connectionId);

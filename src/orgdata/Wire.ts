@@ -46,6 +46,3 @@ export interface WireDbFull extends WireDbUpdate {
 export interface FullEntryRequest {
   ids: string[];
 }
-
-
-

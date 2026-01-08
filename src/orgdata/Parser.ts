@@ -5,40 +5,43 @@
 
 /** Parser for org headlines */
 
-import {Entry, EntryProperties, newId, TodoStatus} from './Entry';
+import { Entry, EntryProperties, newId, TodoStatus } from "./Entry";
 
 export type OptionalEntryProps = Partial<EntryProperties>;
 
 enum ParseFSM {
-  SEEKING_HEADLINE=1,
-  SCANNIG_HEADLINE=2,
+  SEEKING_HEADLINE = 1,
+  SCANNIG_HEADLINE = 2,
 }
 
 const HEADLINE_PATTERN = /^\*+ (TODO |DONE )?(.*)\n/;
 
-export const DATETIME_PATTERN = /((\d{4})-(\d{2})-(\d{2})) (Mon|Tue|Wed|Thu|Fri|Sat|Sun)( ((\d{2}):(\d{2})))?/;
+export const DATETIME_PATTERN =
+  /((\d{4})-(\d{2})-(\d{2})) (Mon|Tue|Wed|Thu|Fri|Sat|Sun)( ((\d{2}):(\d{2})))?/;
 
 export enum DatetimeFields {
-  DATE=1,
-  YEAR=2,
-  MONTH=3,
-  DAY=4,
-  DOW=5,
-  SPACED_TIME=6,
-  TIME=7,
-  HOUR=8,
-  MINUTE=9
+  DATE = 1,
+  YEAR = 2,
+  MONTH = 3,
+  DAY = 4,
+  DOW = 5,
+  SPACED_TIME = 6,
+  TIME = 7,
+  HOUR = 8,
+  MINUTE = 9,
 }
 
 export type CheckboxStatus = "none" | "unchecked" | "checked";
 
 const CHECKBOX_SYMBOLS: Record<CheckboxStatus, string> = {
-  "none": "",
-  "unchecked": "[ ]",
-  "checked": "[X]",
+  none: "",
+  unchecked: "[ ]",
+  checked: "[X]",
 };
 
-export const DEADLINE_PATTERN = new RegExp(`^DEADLINE: <(${DATETIME_PATTERN.source})>`);
+export const DEADLINE_PATTERN = new RegExp(
+  `^DEADLINE: <(${DATETIME_PATTERN.source})>`,
+);
 
 const PROPERTIES_PATTERN = /^:PROPERTIES:\n/;
 const PROPERTY_PATTERN = /^:([-_A-Za-z0-9]+): +(.*)\n/;
@@ -47,7 +50,7 @@ const END_PATTERN = /^:END:\n/;
 const CHECKBOX_PATTERN = /^(\s*([-+*]|(\d+(\.|\))))) (\[.*?\]) (.*)/;
 const LIST_ITEM_PATTERN = /^(\s*([-+*]|(\d+(\.|\))))) (.*)/;
 
-const DAY_OF_WEEK_ORG_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_OF_WEEK_ORG_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** Convert an Org datetime string into a JavaScript datetime. Return undefined if not a valid datetime. */
 export function orgDatetimeToJs(orgDt: string): Date | undefined {
@@ -74,14 +77,18 @@ export function orgDatetimeToJs(orgDt: string): Date | undefined {
 
 /** Convert a Date object to an org datetime. */
 export function jsDatetimeToOrg(jsDt: Date): string {
-  const dateString = (`${jsDt.getFullYear()}-${(jsDt.getMonth() + 1).toString().padStart(2, '0')}-` +
-    `${jsDt.getDate().toString().padStart(2, '0')} ${DAY_OF_WEEK_ORG_NAMES[jsDt.getDay()]}`);
+  const dateString =
+    `${jsDt.getFullYear()}-${(jsDt.getMonth() + 1).toString().padStart(2, "0")}-` +
+    `${jsDt.getDate().toString().padStart(2, "0")} ${DAY_OF_WEEK_ORG_NAMES[jsDt.getDay()]}`;
 
   if (!jsDt.getHours() && !jsDt.getMinutes()) {
     return dateString;
   }
 
-  return dateString + ` ${jsDt.getHours().toString().padStart(2, '0')}:${jsDt.getMinutes().toString().padStart(2, '0')}`;
+  return (
+    dateString +
+    ` ${jsDt.getHours().toString().padStart(2, "0")}:${jsDt.getMinutes().toString().padStart(2, "0")}`
+  );
 }
 
 /** Split out full text into individual lines */
@@ -90,7 +97,7 @@ export function fulltextToLines(fulltext: string): string[] {
     fulltext = "";
   }
   const result = fulltext.split("\n").map((line: string) => line + "\n");
-  result[result.length - 1] = result[result.length - 1].slice(0,-1);
+  result[result.length - 1] = result[result.length - 1].slice(0, -1);
 
   return result;
 }
@@ -101,7 +108,10 @@ function isHeadline(line: string): boolean {
 }
 
 /** Get the ID in the entry content, or return undefined if none set. */
-function getEntryId(content: string[], firstLine: number = 1): string | undefined {
+function getEntryId(
+  content: string[],
+  firstLine: number = 1,
+): string | undefined {
   if (content.length < 4) {
     return undefined;
   }
@@ -141,7 +151,13 @@ function sortAndFixPriority(entries: Entry[]) {
 
 /** Mutate content to insert a :PROPERTIES: :END: block with the specified property in it */
 function insertProperty(content: string[], name: string, value: string) {
-  content.splice(1,0, ":PROPERTIES:\n", `:${name}:       ${value}\n`, ":END:\n");
+  content.splice(
+    1,
+    0,
+    ":PROPERTIES:\n",
+    `:${name}:       ${value}\n`,
+    ":END:\n",
+  );
 }
 
 /** Replace the body of the entry with a new body. */
@@ -184,7 +200,10 @@ export function checkboxCopy(line: string): string {
 }
 
 /** Transform line to include a checkbox with the preferred status (or remove it). */
-export function setCheckboxStatus(line: string, status: CheckboxStatus): string {
+export function setCheckboxStatus(
+  line: string,
+  status: CheckboxStatus,
+): string {
   let prefix = "";
   let suffix = "";
 
@@ -200,8 +219,7 @@ export function setCheckboxStatus(line: string, status: CheckboxStatus): string 
     if (listItemTest) {
       prefix = listItemTest[1];
       suffix = listItemTest[5];
-    }
-    else {
+    } else {
       // this is not a list item; to make it one, we have to convert it to a list item,
       return setCheckboxStatus(makeListItem(line), status);
     }
@@ -214,7 +232,6 @@ export function setCheckboxStatus(line: string, status: CheckboxStatus): string 
 
 /** Change the content string to add the property or replace the existing one. */
 function setProperty(content: string[], name: string, value: string) {
-
   let i = 1;
   let propertiesDrawerFound = false;
   // Find start of properties
@@ -261,7 +278,7 @@ export function setTodoStatus(fulltext: string, value: TodoStatus): string {
   let content = fulltextToLines(fulltext);
 
   let statusString = "";
-  switch(value) {
+  switch (value) {
     case TodoStatus.TODO:
       statusString = "TODO";
       break;
@@ -271,7 +288,10 @@ export function setTodoStatus(fulltext: string, value: TodoStatus): string {
   }
 
   const headlineMatcher = /(\*+) +(TODO |DONE )? *(.*)\n/;
-  const updated = content[0].replace(headlineMatcher, `$1 ${statusString} $3\n`);
+  const updated = content[0].replace(
+    headlineMatcher,
+    `$1 ${statusString} $3\n`,
+  );
   content[0] = updated;
 
   return content.join("");
@@ -297,7 +317,11 @@ function findFirstBodyLineIndex(content: string[]): number {
   }
 
   if (content[firstLine] === ":PROPERTIES:") {
-    for (; content[firstLine] !== ":END:" && firstLine != content.length - 1; firstLine++) { }
+    for (
+      ;
+      content[firstLine] !== ":END:" && firstLine != content.length - 1;
+      firstLine++
+    ) {}
     firstLine++;
   }
 
@@ -329,9 +353,13 @@ export function parseEntry(content: string[]): Entry {
   }
 
   const deadline = getDeadline(content);
-  console.log(deadline ? `deadline found: ${deadline}` : `no deadline found in ${content[1]}`);
+  console.log(
+    deadline
+      ? `deadline found: ${deadline}`
+      : `no deadline found in ${content[1]}`,
+  );
 
-  if(deadline) {
+  if (deadline) {
     firstBodyLine++;
   }
 
@@ -351,26 +379,30 @@ export function parseEntry(content: string[]): Entry {
   for (let i = firstBodyLine; i < content.length; i++) {
     if (!parsingDrawer) {
       if (DRAWER_PATTERN.test(content[i])) {
-	parsingDrawer = true;
-	continue;
+        parsingDrawer = true;
+        continue;
       }
       bodyLines.push(content[i]);
     } else {
       if (END_PATTERN.test(content[i])) {
-	parsingDrawer = false;
-	continue;
+        parsingDrawer = false;
+        continue;
       }
       const propertyTest = PROPERTY_PATTERN.exec(content[i]);
       if (propertyTest) {
-	if (propertyTest[1] == "TimeTrackerPriority") {
-	  console.log("TimeTrackerPriority recognized!");
-	  priority = parseInt(propertyTest[2]);
-	}
+        if (propertyTest[1] == "TimeTrackerPriority") {
+          console.log("TimeTrackerPriority recognized!");
+          priority = parseInt(propertyTest[2]);
+        }
       }
     }
   }
 
-  if (content.length > 2 && (content[content.length - 1] == "\n") && (content[content.length - 2] == "\n")) {
+  if (
+    content.length > 2 &&
+    content[content.length - 1] == "\n" &&
+    content[content.length - 2] == "\n"
+  ) {
     // content ends with \n\n; trim it a bit
     content.pop();
   }
@@ -390,7 +422,6 @@ export function parseEntry(content: string[]): Entry {
 
 /** Build a list of entries from an incoming text. */
 export function parse(contentString: string): Entry[] {
-
   if (!contentString) {
     contentString = "";
   }
@@ -408,21 +439,21 @@ export function parse(contentString: string): Entry[] {
     }
     switch (currentState) {
       case ParseFSM.SEEKING_HEADLINE:
-	if (!isHeadline(line)) {
-	  prefixBodyPieces.push(line);
-	} else {
-	  currentBodyPieces.push(line);
-	  currentState = ParseFSM.SCANNIG_HEADLINE;
-	}
-	break;
+        if (!isHeadline(line)) {
+          prefixBodyPieces.push(line);
+        } else {
+          currentBodyPieces.push(line);
+          currentState = ParseFSM.SCANNIG_HEADLINE;
+        }
+        break;
       case ParseFSM.SCANNIG_HEADLINE:
-	if (!isHeadline(line)) {
-	  currentBodyPieces.push(line);
-	} else {
-	  entries.push(parseEntry(currentBodyPieces));
-	  currentBodyPieces = [line];
-	}
-	break;
+        if (!isHeadline(line)) {
+          currentBodyPieces.push(line);
+        } else {
+          entries.push(parseEntry(currentBodyPieces));
+          currentBodyPieces = [line];
+        }
+        break;
     }
   }
   entries.push(parseEntry(currentBodyPieces));

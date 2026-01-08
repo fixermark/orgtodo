@@ -6,7 +6,7 @@
 import "react";
 import React from "react";
 
-import {Entry, TodoStatus} from "../orgdata/Entry";
+import { Entry, TodoStatus } from "../orgdata/Entry";
 
 /** Compute class name for the TODO line */
 function todoClassName(entry: Entry): string {
@@ -24,13 +24,20 @@ export interface TodoLineProps {
 }
 
 /** The TODO / DONE line */
-export const TodoLine: React.FC<TodoLineProps> = ({entry, onToggleTodo}) => {
+export const TodoLine: React.FC<TodoLineProps> = ({ entry, onToggleTodo }) => {
   return (
     <div
-           className={todoClassName(entry)}
-           onClick={() => onToggleTodo(entry.summary.id, entry.summary.todo === TodoStatus.DONE ? TodoStatus.TODO : TodoStatus.DONE)}>
-           {todoText(entry)}
+      className={todoClassName(entry)}
+      onClick={() =>
+        onToggleTodo(
+          entry.summary.id,
+          entry.summary.todo === TodoStatus.DONE
+            ? TodoStatus.TODO
+            : TodoStatus.DONE,
+        )
+      }
+    >
+      {todoText(entry)}
     </div>
   );
-
 };

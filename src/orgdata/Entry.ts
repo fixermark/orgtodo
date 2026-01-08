@@ -3,7 +3,7 @@
  * Licensed under the MIT License (https://opensource.org/licenses/MIT)
  */
 
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 /** Org entries */
 
@@ -11,7 +11,7 @@ export enum TodoStatus {
   NONE = 1,
   TODO,
   DONE,
-};
+}
 
 /** Properties that summarize an entry */
 export interface EntryProperties {
@@ -22,7 +22,6 @@ export interface EntryProperties {
   priority: number;
   body: string;
 }
-
 
 /** A single Entry in the time tracker and its summary */
 export interface Entry {
@@ -37,4 +36,3 @@ export function newId(): string {
   }
   return uuidv4();
 }
-

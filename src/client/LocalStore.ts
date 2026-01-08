@@ -3,15 +3,21 @@
  * Licensed under the MIT License (https://opensource.org/licenses/MIT)
  */
 
-import 'react';
-import {useState, useEffect} from 'react';
+import "react";
+import { useState, useEffect } from "react";
 
-import {remoteStore} from './RemoteStore';
-import {TodoUpdate, handleUpdate} from '../orgdata/Updates';
-import {TasksResolution, WireDbUpdate, WireDbSummary, WireDbFull, WireEntry} from '../orgdata/Wire';
-import {hashForText} from '../orgdata/Hash';
-import {Entry} from '../orgdata/Entry';
-import {parse, parseEntry, fulltextToLines} from '../orgdata/Parser';
+import { remoteStore } from "./RemoteStore";
+import { TodoUpdate, handleUpdate } from "../orgdata/Updates";
+import {
+  TasksResolution,
+  WireDbUpdate,
+  WireDbSummary,
+  WireDbFull,
+  WireEntry,
+} from "../orgdata/Wire";
+import { hashForText } from "../orgdata/Hash";
+import { Entry } from "../orgdata/Entry";
+import { parse, parseEntry, fulltextToLines } from "../orgdata/Parser";
 const LOCAL_STORE_KEY = "tasks";
 
 interface EntryToSend {
@@ -65,7 +71,7 @@ function saveStore(store: WireDbFull) {
 async function fetchDb(resolution: TasksResolution): Promise<any> {
   const response = await fetch(`/tasks?resolution=${resolution}`, {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
@@ -77,20 +83,24 @@ async function fetchDb(resolution: TasksResolution): Promise<any> {
 }
 
 async function fetchDbUpdate(): Promise<WireDbUpdate> {
-  return await fetchDb("update") as WireDbUpdate;
+  return (await fetchDb("update")) as WireDbUpdate;
 }
 
 async function fetchDbSummary(): Promise<WireDbSummary> {
-  return await fetchDb("summary") as WireDbSummary;
+  return (await fetchDb("summary")) as WireDbSummary;
 }
 
 async function fetchDbFull(): Promise<WireDbFull> {
-  return await fetchDb("full") as WireDbFull;
+  return (await fetchDb("full")) as WireDbFull;
 }
 
 /** Update the store with a full set of entries and replace server state. */
-async function updateStore(updateTime: number, entries: Entry[], setStore: (store: WireDbFull) => void, setConnections: (count: number) => void): Promise<void> {
-
+async function updateStore(
+  updateTime: number,
+  entries: Entry[],
+  setStore: (store: WireDbFull) => void,
+  setConnections: (count: number) => void,
+): Promise<void> {
   const newEntries: Record<string, WireEntry> = {};
   for (const entry of entries) {
     newEntries[entry.summary.id] = {
@@ -131,11 +141,11 @@ export function useLocalStore(): LocalStore {
 
     if (store.epochUpdateMsecs === 0) {
       if (checkStore()) {
-	setStore(loadStore());
-	// TODO: Confirm against DB that store is up to date.
+        setStore(loadStore());
+        // TODO: Confirm against DB that store is up to date.
       } else {
-	console.log("No local DB present. Fetching full store from server...");
-	loadFullDb();
+        console.log("No local DB present. Fetching full store from server...");
+        loadFullDb();
       }
     }
   }, []);
@@ -148,35 +158,35 @@ export function useLocalStore(): LocalStore {
       const entriesToUpdate = handleUpdate(update, store);
 
       async function asyncUpdate() {
-	const timestamp = new Date().valueOf();
-	const entriesToSend: EntryToSend[] = [];
+        const timestamp = new Date().valueOf();
+        const entriesToSend: EntryToSend[] = [];
 
-	for (const entry of entriesToUpdate) {
-	  const newEntry = {
-	    id: entry.id,
-	    fulltext: entry.fulltext,
-	    hash: await hashForText(entry.fulltext),
-	    epochUpdateMsecs: timestamp,
-	  };
-	  let oldHash: string | undefined = undefined;
-	  if (store.entries[entry.id]) {
-	    oldHash = store.entries[entry.id].hash;
-	  }
-	  store.entries[entry.id] = newEntry;
-	  entriesToSend.push({entry: newEntry, oldHash: oldHash});
-	}
-	const newStore = {
-	  epochUpdateMsecs: timestamp,
+        for (const entry of entriesToUpdate) {
+          const newEntry = {
+            id: entry.id,
+            fulltext: entry.fulltext,
+            hash: await hashForText(entry.fulltext),
+            epochUpdateMsecs: timestamp,
+          };
+          let oldHash: string | undefined = undefined;
+          if (store.entries[entry.id]) {
+            oldHash = store.entries[entry.id].hash;
+          }
+          store.entries[entry.id] = newEntry;
+          entriesToSend.push({ entry: newEntry, oldHash: oldHash });
+        }
+        const newStore = {
+          epochUpdateMsecs: timestamp,
           entries: store.entries,
         };
 
-	setStore(newStore);
-	saveStore(newStore);
+        setStore(newStore);
+        saveStore(newStore);
 
-	const remote = remoteStore();
-	for (const entry of entriesToSend) {
-	  await remote.send(entry.entry, entry.oldHash, setConnections);
-	}
+        const remote = remoteStore();
+        for (const entry of entriesToSend) {
+          await remote.send(entry.entry, entry.oldHash, setConnections);
+        }
       }
       asyncUpdate();
     },
@@ -188,4 +198,3 @@ export function useLocalStore(): LocalStore {
     },
   };
 }
-
