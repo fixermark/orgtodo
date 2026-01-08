@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Mark T. Tomczak
+ * Licensed under the MIT License (https://opensource.org/licenses/MIT)
+ */
+
 import {WireDbFull, WireEntryUnhashed} from './Wire';
 import {fulltextToLines, parseEntry, setPriority} from './Parser';
 import {Entry} from './Entry';

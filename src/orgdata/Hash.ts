@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Mark T. Tomczak
+ * Licensed under the MIT License (https://opensource.org/licenses/MIT)
+ */
+
 import {sha256} from '@noble/hashes/sha2.js';
 
 /** Hashing of entries */

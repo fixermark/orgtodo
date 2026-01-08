@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Mark T. Tomczak
+ * Licensed under the MIT License (https://opensource.org/licenses/MIT)
+ */
+
 /** Acceptable updates to TODO items */
 
 import {TodoStatus, Entry} from "./Entry";

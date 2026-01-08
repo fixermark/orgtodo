@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Mark T. Tomczak
+ * Licensed under the MIT License (https://opensource.org/licenses/MIT)
+ */
+
 /** Synchronization to remote todo database */
 
 import {WireDbFull, WireEntry} from '../orgdata/Wire';

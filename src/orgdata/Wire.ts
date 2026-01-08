@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Mark T. Tomczak
+ * Licensed under the MIT License (https://opensource.org/licenses/MIT)
+ */
+
 /** Formats for data on-wire */
 
 /** Summary of an entry, suitable for determining whether it's synced across local and db */

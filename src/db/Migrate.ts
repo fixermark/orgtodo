@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Mark T. Tomczak
+ * Licensed under the MIT License (https://opensource.org/licenses/MIT)
+ */
+
 import { connection, fulltextToEntry, initTables, replaceEntries, TASK_COLUMN_NAMES } from './Db';
 import * as sqlite from 'sqlite';
 
