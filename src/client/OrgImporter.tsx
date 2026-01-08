@@ -10,8 +10,6 @@ import { useState, useCallback, useEffect } from "react";
 
 import { WireEntry } from "../orgdata/Wire";
 
-import { Entry } from "../orgdata/Entry";
-
 export interface OrgImporterProps {
   storeEntries: WireEntry[];
   onReplaceEntries(newText: string): void;

@@ -13,9 +13,9 @@ interface OutgoingMessage {
 }
 
 /** Debug function for testing */
-function sleep(msec: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, msec));
-}
+// function sleep(msec: number): Promise<void> {
+//   return new Promise((resolve) => setTimeout(resolve, msec));
+// }
 
 export class RemoteStore {
   nextId: number = 1;

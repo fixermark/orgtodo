@@ -120,7 +120,7 @@ function getEntryId(
     console.log("No PROPERTIES while scanning ID.");
     return undefined;
   }
-  for (var i = firstLine + 1; i < content.length; i++) {
+  for (let i = firstLine + 1; i < content.length; i++) {
     console.log(`Scanning ${i} - ${content[i]}...`);
     const test = /^:ID: +(.*)\n/.exec(content[i]);
     if (test) {
@@ -268,14 +268,14 @@ function setProperty(content: string[], name: string, value: string) {
 
 /** Set the priority on the specified fulltext. */
 export function setPriority(fulltext: string, value: number): string {
-  let content = fulltextToLines(fulltext);
+  const content = fulltextToLines(fulltext);
   setProperty(content, "TimeTrackerPriority", value.toString());
   return content.join("");
 }
 
 /** Set the TODO status on the specified fulltext. */
 export function setTodoStatus(fulltext: string, value: TodoStatus): string {
-  let content = fulltextToLines(fulltext);
+  const content = fulltextToLines(fulltext);
 
   let statusString = "";
   switch (value) {
@@ -321,7 +321,7 @@ function findFirstBodyLineIndex(content: string[]): number {
       ;
       content[firstLine] !== ":END:" && firstLine != content.length - 1;
       firstLine++
-    ) {}
+    );
     firstLine++;
   }
 
@@ -375,7 +375,7 @@ export function parseEntry(content: string[]): Entry {
   // parse body
   let parsingDrawer = false;
   let priority: number | undefined = undefined;
-  let bodyLines = [];
+  const bodyLines = [];
   for (let i = firstBodyLine; i < content.length; i++) {
     if (!parsingDrawer) {
       if (DRAWER_PATTERN.test(content[i])) {
@@ -427,9 +427,9 @@ export function parse(contentString: string): Entry[] {
   }
   const content = contentString.split("\n").map((x) => x + "\n");
 
-  let entries: Entry[] = [];
+  const entries: Entry[] = [];
   let currentBodyPieces: string[] = [];
-  let prefixBodyPieces: string[] = [];
+  const prefixBodyPieces: string[] = [];
 
   let currentState = ParseFSM.SEEKING_HEADLINE;
 

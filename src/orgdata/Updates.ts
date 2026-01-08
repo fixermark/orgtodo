@@ -63,6 +63,7 @@ export function handleUpdate(
         { id: update.properties.id, fulltext: update.properties.fulltext },
       ];
     case "todoValue":
+      // eslint-disable-next-line no-case-declarations
       let entry = store.entries[update.properties.id];
       if (!entry) {
         throw new Error("No entry with id ${id}");

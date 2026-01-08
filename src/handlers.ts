@@ -7,12 +7,9 @@
 
 import express from 'express';
 
-import {TasksResolution, WireDbFull, WireEntry} from './orgdata/Wire';
-import {TodoStatus} from './orgdata/Entry';
+import {TasksResolution, WireEntry} from './orgdata/Wire';
 
-import {parseEntry} from './orgdata/Parser';
-
-import {connection, fulltextToEntry, topqueue, bury, setTodoStatus, bumpPriority, PriorityBump, addTask, replaceDb, upsertTodo} from './db/Db';
+import {connection, fulltextToEntry, addTask, replaceDb, upsertTodo} from './db/Db';
 
 /** Handle fetching the tasks table state */
 export async function handleTasksGet(req: express.Request, res: express.Response): Promise<void> {
@@ -69,47 +66,6 @@ export async function handleTasksGet(req: express.Request, res: express.Response
     }
   }
   res.json(response);
-}
-
-/** Handle a request to set TODO state of a task. */
-async function handleSetTaskTodo(req: express.Request, res: express.Response): Promise<void> {
-  let todoStatus = TodoStatus.NONE;
-  switch (req.query.todo) {
-    case "todo":
-      todoStatus = TodoStatus.TODO;
-      break;
-    case "done":
-      todoStatus=TodoStatus.DONE;
-      break;
-  }
-
-  setTodoStatus(req.params.taskid, todoStatus);
-  res.sendStatus(200);
-}
-
-/** Handle a request to change priority of a task. */
-async function handleChangeTaskPriority(req: express.Request, res: express.Response): Promise<void> {
-  switch (req.query.priority) {
-    case "topqueue":
-      await topqueue(req.params.taskid);
-      break;
-    case "bury":
-      await bury(req.params.taskid);
-      break;
-    case "up1":
-      await bumpPriority(req.params.taskid, PriorityBump.HIGHER);
-      break;
-    case "down1":
-      await bumpPriority(req.params.taskid, PriorityBump.LOWER);
-      break;
-    default:
-      res.status(400).send(`Unrecognized priority parameter ${req.query.priority}`);
-      return;
-  }
-
-
-  res.sendStatus(200);
-
 }
 
 /** Handle a post to a task with a specific ID. */

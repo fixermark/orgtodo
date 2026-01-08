@@ -3,13 +3,7 @@
  * Licensed under the MIT License (https://opensource.org/licenses/MIT)
  */
 
-import {
-  fulltextToLines,
-  parse,
-  parseEntry,
-  getDeadline,
-  setPriority,
-} from "../orgdata/Parser";
+import { fulltextToLines, parseEntry, setPriority } from "../orgdata/Parser";
 import { Entry, TodoStatus } from "../orgdata/Entry";
 import { WireEntry } from "../orgdata/Wire";
 import { OrgImporter } from "./OrgImporter";
@@ -25,18 +19,12 @@ import {
   todoReplaceBody,
 } from "../orgdata/Updates";
 import "react";
-import { withErrorBoundary, useErrorBoundary } from "react-use-error-boundary";
+import { useErrorBoundary } from "react-use-error-boundary";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useLocalStore, findMinPriority } from "./LocalStore";
 
 type SortColumn = "priority" | "deadline";
-
-/** Marshalls the JSON over the wire properly into an Entry object. */
-function marshallEntryJson(entry: any): Entry {
-  entry.summary.deadline = getDeadline(entry.fulltext);
-  return entry as Entry;
-}
 
 function messageForError(err: unknown): string | undefined {
   if (typeof err === "undefined") {
@@ -83,9 +71,7 @@ function localStoreToEntries(
 export const App = () => {
   const localStore = useLocalStore();
 
-  const [error, resetError] = useErrorBoundary((error, errorInfo) =>
-    console.error(error),
-  );
+  const [error, resetError] = useErrorBoundary((error) => console.error(error));
 
   const [sortBy, setSortBy] = useState<SortColumn>("priority");
 

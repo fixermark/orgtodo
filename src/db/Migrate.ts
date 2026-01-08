@@ -34,7 +34,6 @@ export async function checkAndMigrate() {
   console.log("Columns:");
   console.log(column_names);
 
-  let table_sound = true;
   for (const expected_name of TASK_COLUMN_NAMES) {
     if (!column_names.includes(expected_name)) {
       console.warn(

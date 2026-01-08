@@ -8,6 +8,7 @@
     "build-server": "tsc -p tsconfig.server.json",
     "build": "npm run build-server && npm run build-client",
     "format": "npx prettier --write src/**/*.ts src/**/*.tsx __mocks__/**/*.js",
+    "lint": "npx eslint src",
     "start": "node build/app.js",
     "test": "jest"
   },
@@ -24,7 +25,10 @@
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
     "enzyme": "^3.11.0",
+    "eslint": "^9.39.2",
     "jest": "^30.2.0",
     "prettier": "3.7.4",
     "ts-jest": "^29.4.6",

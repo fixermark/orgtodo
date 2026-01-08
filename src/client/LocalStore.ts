@@ -8,13 +8,7 @@ import { useState, useEffect } from "react";
 
 import { remoteStore } from "./RemoteStore";
 import { TodoUpdate, handleUpdate } from "../orgdata/Updates";
-import {
-  TasksResolution,
-  WireDbUpdate,
-  WireDbSummary,
-  WireDbFull,
-  WireEntry,
-} from "../orgdata/Wire";
+import { TasksResolution, WireDbFull, WireEntry } from "../orgdata/Wire";
 import { hashForText } from "../orgdata/Hash";
 import { Entry } from "../orgdata/Entry";
 import { parse, parseEntry, fulltextToLines } from "../orgdata/Parser";
@@ -80,14 +74,6 @@ async function fetchDb(resolution: TasksResolution): Promise<any> {
   }
 
   return response.json();
-}
-
-async function fetchDbUpdate(): Promise<WireDbUpdate> {
-  return (await fetchDb("update")) as WireDbUpdate;
-}
-
-async function fetchDbSummary(): Promise<WireDbSummary> {
-  return (await fetchDb("summary")) as WireDbSummary;
 }
 
 async function fetchDbFull(): Promise<WireDbFull> {

@@ -6,9 +6,7 @@
 import express from 'express';
 import path from 'path';
 import 'process';
-import { readEntries, replaceEntries, topqueue, ViewSort} from './db/Db';
 import { checkAndMigrate } from './db/Migrate';
-import { parse } from './orgdata/Parser';
 import { handleTasksGet, handleTaskPost, handleTaskPut, handleNewTask } from './handlers';
 
 const server = express();
