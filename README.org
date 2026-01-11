@@ -8,7 +8,7 @@ For feature list, please consult [[.sandstorm/description.md][the description fi
 
 * Documentation
 
-For documentation, please see [[https://fixermark.com/orgtodo/index.htm][the website]]. The documentation for this repository is available under the [docs directory](docs/index.md).
+For documentation, please see [[https://fixermark.com/orgtodo/index.html][the website]]. The documentation for this repository is available under the [docs directory](docs/index.md).
 
 * Installation
 
