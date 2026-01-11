@@ -13,7 +13,7 @@
 
 *OrgTodo* is a simple TODO list for [[https://sandstorm.org/][Sandstorm]] that features easy integration with [[https://sandstorm.org/][emacs org-mode]] (via copy-paste). It can be run as a Sandstorm app.
 
-** TODO add link to source page
+Source can be found at [[https://github.com/fixermark/orgtodo]].
 
 * Using OrgTodo
 
