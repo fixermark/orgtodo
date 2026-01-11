@@ -1,3 +1,6 @@
+# 0.1.4
+Minor change: Updated links to doc and source in pkgdef.
+
 # 0.1.3
 
 First public release
