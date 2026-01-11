@@ -1,0 +1,119 @@
+#+TITLE: OrgTodo for Sandstorm
+#+AUTHOR: Copyright 2026 Mark T. Tomczak
+#+CSS: ./style.css
+#+OPTIONS: html-postamble:nil
+#+OPTIONS: html-style:nil
+#+OPTIONS: H:6
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./style.css" />
+
+* OrgTodo, a simple task tracker for Sandstorm
+
+#+ATTR_HTML: :align center
+[[./img/title.png]]
+
+*OrgTodo* is a simple TODO list for [[https://sandstorm.org/][Sandstorm]] that features easy integration with [[https://sandstorm.org/][emacs org-mode]] (via copy-paste). It can be run as a Sandstorm app.
+
+** TODO add link to source page
+
+* Using OrgTodo
+
+After creating a grain in OrgTodo, you should see the following:
+
+#+ATTR_HTML: :align center
+[[./img/no-entries.png]]
+
+** Creating TODO items
+
+There are two ways to create some TODO items.
+
+*** One-at-a-time
+
+Click on *New Task*. You can specify a headline and main body text below.
+
+#+ATTR_HTML: :align center
+[[./img/create-new-task.png]]
+
+If you want to have checkboxes underneath your TODO item, click *Add Checkboxes*.
+
+#+ATTR_HTML: :align center
+[[./img/create-new-task-checkboxes.png]]
+
+Click *Create New Task*.
+
+#+ATTR_HTML: :align center
+[[./img/one-task.png]]
+
+*** Full import
+
+Click on *Import from org*. The dialog box lists all the TODO items in the grain
+as a series of headlines.
+
+#+ATTR_HTML: :align center
+[[./img/import-from-org.png]]
+
+Note that several items are added here:
+
+- *ID property*: unique identifier to allow the TODO item to be tracked in the
+  database
+- *TimeTrackerPriority*: Tracks how the items in the TODO list should be
+  sorted. Lower numbers are higher priority.
+
+The text in the box can be copied-and-pasted directly into an emacs org
+file. Conversely, An emacs org file's contents can be copied and pasted into
+this dialog. Every headline will be interpreted as a TODO item (but see [[*Import caveat][Import
+caveat]] below).
+
+Clicking *Submit* will /replace/ all existing TODOs with the ones you specify.
+
+#+ATTR_HTML: :align center
+[[./img/new-todos.png]]
+
+**** Import caveat
+
+- Headline nesting isn't maintained on import; each headline, regardless of
+  level, is treated as a top-level TODO item and will be rearranged by reordering.
+- org DEADLINE is supported, but the only way to set one is to specify it in
+  the *Import from org* dialog. Also, if the entry lacks a ~:PROPERTIES:~ block, the
+  DEADLINE will be interpreted as part of the body.
+- Checkboxes are supported, but simply: OrgTodo interprets ~- [ ]~ as unchecked
+  and ~- [anything]~ as checked (though it emits ~- [X]~ for checked when the value
+  is changed...Hi Postel!).
+
+** Editing items
+
+From the main interface, you can modify items' status and priority and adjust
+how they are displayed.
+
+To change the status of a TODO item, click the red ~TODO~ bar. This changes it to
+DONE.
+
+#+ATTR_HTML: :align center
+[[./img/todone.png]]
+
+The four buttons at the bottom of a TODO item control ordering. The outer two
+move an item to the top or bottom of the list; the middle two swap it with its
+neighbor one higher or one lower in priority.
+
+#+ATTR_HTML: :align center
+[[./img/swapped.png]]
+
+You can also get a detailed view of one item by clicking its body text. In this
+view, items that have checkboxes associated will have checkboxes that can be
+toggled on or off. Clicking the *X* button closes the detail view.
+
+#+ATTR_HTML: :align center
+[[./img/detail-checks.png]]
+
+** Controlling display state
+
+On the main view, you can control ordering of items by clicking *Sorting by
+priority* to toggle it to *Sorting by deadline*. You can also toggle the *Hide Done*
+checkbox to hide items that are already marked DONE.
+
+* Conclusion
+
+That's everything! I hope this is useful to you.
+
+#+BEGIN_EXPORT html
+<p><i>Take care,<br>Mark</i></p>
+#+END_EXPORT

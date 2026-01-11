@@ -1,0 +1,75 @@
+* OrgTodo, a simple task tracker for Sandstorm
+
+*OrgTodo* is a simple TODO list for [[https://sandstorm.org/][Sandstorm]] that features easy integration with [[https://sandstorm.org/][emacs org-mode]] (via copy-paste). It can be run as a Sandstorm app.
+
+* Features
+
+For feature list, please consult [[.sandstorm/description.md][the description file]].
+
+* Documentation
+
+For documentation, please see [[https://fixermark.com/orgtodo/index.htm][the website]]. The documentation for this repository is available under the [docs directory](docs/index.md).
+
+* Installation
+
+*This app is alpha software.* It is not yet approved for the Sandstorm app repository and is currently in the "written to scratch an itch" phase of development. Author takes no responsibility for its efficacy and *any version released may make backwards-incompatible changes with existing grains.* I highly recommend *backing up your todo list frequently* (you can do this by clicking *Import from org* and copying the contents into a text file).
+
+If those conditions are acceptable, the SPK of the latest version can always be found [[https://fixermark.com/orgtodo/latest.spk][here]]. Sandstorm administrators may install it by going to their *Apps* browser and clicking *Upload app...*.
+
+* License
+
+This source code is released under the MIT license, the text of which can be found in the [[./LICENSE][LICENSE]] file.
+
+* Developing
+
+OrgTodo is a standard React and npm app that uses sqlite as its backing store. The process for setting up a development environment is:
+
+- Follow the process to install the dependencies for [[https://docs.sandstorm.io/en/latest/vagrant-spk/installation/][sandstorm development]] to create a testing virtual machine.
+- Install [[https://docs.sandstorm.io/en/latest/vagrant-spk/installation/][nodejs]].
+- Run ~npm install~.
+- At this point, you should be able to ~npm run test~ to get successful tests.
+- To try the app on your local Sandstorm virtual machine, run ~vagrant-spk dev~.
+
+* Contributing
+
+** Bug Reports / issues
+
+Issue reports are extremely welcome! When submitting them, please use this format:
+
+#+BEGIN_SRC
+Version: <what version of OrgTodo? This can be found in the app description in Sandstorm>
+
+Actions taken:
+<list of things you did>
+
+Expected result:
+<what you thought would happen>
+
+Observed result:
+<what happened. Screenshots always welcome!>
+#+END_SRC
+
+** PRs
+
+Code contributions are also welcome, but no SLA is offered for review or approval. It is requested that any contributions run the following before submitting a PR:
+
+#+BEGIN_SRC bash
+npm run format
+npm run lint
+npm run test
+#+END_SRC
+
+... and make sure the lint report is clear and all tests are green.
+
+* Known Issues
+
+- Multi-user synchronization on one grain is currently fairly rough.
+  - Changes to the server image are not auto-reflected on every client.
+  - Conflict between client state and server state is detected and triggers a
+    suggestion to reload the page.
+- Headline nesting not supported
+  - Evey headline will be treated as a separate TODO item
+  - Nesting relationships are /not/ preserved.
+- Editing an existing todo is rough
+  - TODO / DONE and checkboxes can be edited
+  - editing deadline or body of a TODO can only be done in the *Import from org* dialog.
