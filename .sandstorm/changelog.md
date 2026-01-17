@@ -1,3 +1,6 @@
+# 0.1.5
+Added editing of text body in detail view.
+
 # 0.1.4
 Minor change: Updated links to doc and source in pkgdef.
 

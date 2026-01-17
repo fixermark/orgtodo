@@ -19,9 +19,9 @@ const pkgdef :Spk.PackageDefinition = (
 
     appTitle = (defaultText = "OrgTodo"),
 
-    appVersion = 21,  # Increment this for every release.
+    appVersion = 22,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "0.1.4"),
+    appMarketingVersion = (defaultText = "0.1.5"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 
@@ -120,6 +120,8 @@ const pkgdef :Spk.PackageDefinition = (
       # title in the grid view in the app market.
 
       screenshots = [
+        (width = 750, height=299, png = embed "../docs/img/one-task.png"),
+        (width = 744, height=358, png = embed "../docs/img/swapped.png"),
         # Screenshots to use for marketing purposes.  Examples below.
         # Sizes are given in device-independent pixels, so if you took these
         # screenshots on a Retina-style high DPI screen, divide each dimension by two.
