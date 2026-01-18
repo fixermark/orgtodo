@@ -34,7 +34,6 @@ export const DetailView: React.FC<DetailViewProps> = ({
   onReplaceBody,
   onDismiss,
 }) => {
-
   const [editDetailView, setEditDetailView] = useState<boolean>(false);
 
   const onSetCheckLine = useCallback(
@@ -46,20 +45,23 @@ export const DetailView: React.FC<DetailViewProps> = ({
     [entry, onReplaceBody],
   );
 
-  const onSaveBodyEdits = useCallback((newBody: string) => {
-    onReplaceBody(entry, newBody);
-    setEditDetailView(false);
-  }, [entry, onReplaceBody, setEditDetailView]);
+  const onSaveBodyEdits = useCallback(
+    (newBody: string) => {
+      onReplaceBody(entry, newBody);
+      setEditDetailView(false);
+    },
+    [entry, onReplaceBody, setEditDetailView],
+  );
 
   return (
     <div className="dialog-background">
       <div className="detail-view v-flex-container">
-	<div className="flex-row">
+        <div className="flex-row">
           <button onClick={onDismiss}>X</button>
-	</div>
-	<div className="flex-row">
+        </div>
+        <div className="flex-row">
           <TodoLine entry={entry} onToggleTodo={onToggleTodo} />
-	</div>
+        </div>
         <div className="headline flex-row">{entry.summary.headline}</div>
         <div className="taskId flex-row">{entry.summary.id}</div>
         {entry.summary.deadline && (
@@ -67,11 +69,11 @@ export const DetailView: React.FC<DetailViewProps> = ({
             Deadline: {formatDeadline(entry.summary.deadline)}
           </div>
         )}
-	{!editDetailView && (
-	  <>
-	    <div className="flex-row">
-	      <button onClick={() => setEditDetailView(true)}>Edit</button>
-	    </div>
+        {!editDetailView && (
+          <>
+            <div className="flex-row">
+              <button onClick={() => setEditDetailView(true)}>Edit</button>
+            </div>
 
             <DetailBody
               entry={entry}
@@ -79,15 +81,15 @@ export const DetailView: React.FC<DetailViewProps> = ({
                 onSetCheckLine(line, status)
               }
             />
-	  </>
-	)}
-	{editDetailView && (
-	  <EditTextBlob
-	    text={entry.summary.body}
-	    onSaveEdits={onSaveBodyEdits}
-	    onCancel={() => setEditDetailView(false)}
-	  />
-	)}
+          </>
+        )}
+        {editDetailView && (
+          <EditTextBlob
+            text={entry.summary.body}
+            onSaveEdits={onSaveBodyEdits}
+            onCancel={() => setEditDetailView(false)}
+          />
+        )}
       </div>
     </div>
   );

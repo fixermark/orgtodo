@@ -13,7 +13,11 @@ export type EditTextBlobProps = {
 };
 
 /** Edit a generic text blob and save edits. */
-export const EditTextBlob: React.FC<EditTextBlobProps> = ({ text, onSaveEdits, onCancel }) => {
+export const EditTextBlob: React.FC<EditTextBlobProps> = ({
+  text,
+  onSaveEdits,
+  onCancel,
+}) => {
   const [value, setValue] = useState<string>(text);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -27,16 +31,12 @@ export const EditTextBlob: React.FC<EditTextBlobProps> = ({ text, onSaveEdits, o
   return (
     <>
       <div className="flex-row">
-	<button onClick={handleSave}>Save Changes</button>
-	<button onClick={onCancel}>Cancel Changes</button>
+        <button onClick={handleSave}>Save Changes</button>
+        <button onClick={onCancel}>Cancel Changes</button>
       </div>
       <div className="flex-row flex-last-item">
-	<textarea
-          value={value}
-          onChange={handleChange}
-	/>
+        <textarea value={value} onChange={handleChange} />
       </div>
     </>
   );
 };
-
