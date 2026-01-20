@@ -6,7 +6,7 @@
 /** Parser for org headlines */
 
 import { Entry, EntryProperties, newId, TodoStatus } from "./Entry";
-import { DATETIME_PATTERN, orgDatetimeToJs } from "./Date";
+import { DATETIME_PATTERN, jsDatetimeToOrg, orgDatetimeToJs } from "./Date";
 
 export type OptionalEntryProps = Partial<EntryProperties>;
 
@@ -252,6 +252,25 @@ export function getDeadline(fulltext: string[]): Date | undefined {
     return undefined;
   }
   return orgDatetimeToJs(deadlineMatch[1]);
+}
+
+/** Update fulltext to include a deadline or change existing deadline. */
+export function setDeadline(fulltext: string, deadline: Date | null): string {
+  const lines = fulltext.split("\n");
+  if (!deadline) {
+    if (DEADLINE_PATTERN.test(lines[1])) {
+      lines.splice(1, 1);
+    }
+  } else {
+
+    const newDeadlineText = `DEADLINE: <${jsDatetimeToOrg(deadline)}>`;
+    if (DEADLINE_PATTERN.test(lines[1])) {
+      lines[1] = newDeadlineText;
+    }else {
+      lines.splice(1, 0, newDeadlineText);
+    }
+  }
+  return lines.join("\n");
 }
 
 /** Get the index of the first line that's a body line. */

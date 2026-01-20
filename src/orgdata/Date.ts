@@ -18,6 +18,9 @@ export enum DatetimeFields {
   MINUTE = 9,
 }
 
+/** Softer pattern that is intended to be human-input and can be coerced into a formal Org date */
+export const DATE_ONLY_PATTERN = /((\d+)-(\d+)-(\d+))/;
+
 const DAY_OF_WEEK_ORG_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** Parse a year-month-day string into a JavaScript date. */
@@ -28,8 +31,19 @@ export function ymdToJsDate(dateStr: string): Date {
   return new Date(year, month - 1, day);
 }
 
+/** Returns true if the date parses. */
+export function isValidDate(dateStr: string): boolean {
+  return DATETIME_PATTERN.test(dateStr) || DATE_ONLY_PATTERN.test(dateStr);
+}
+
 /** Convert an Org datetime string into a JavaScript datetime. Return undefined if not a valid datetime. */
 export function orgDatetimeToJs(orgDt: string): Date | undefined {
+  if (!DATETIME_PATTERN.test(orgDt)) {
+    if (!DATE_ONLY_PATTERN.test(orgDt)) {
+      return undefined;
+    }
+    return ymdToJsDate(orgDt);
+  }
   const result = DATETIME_PATTERN.exec(orgDt);
 
   if (!result) {

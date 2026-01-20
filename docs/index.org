@@ -100,7 +100,8 @@ neighbor one higher or one lower in priority.
 You can also get a detailed view of one item by clicking its body text. In this
 view, items that have checkboxes associated will have checkboxes that can be
 toggled on or off. Clicking the *X* button closes the detail view. You can also
-edit the body of the TODO item by clicking ~Edit~ here.
+edit the body of the TODO item by clicking ~Edit~ here, and edit the deadline by
+clicking on the deadline text.
 
 #+ATTR_HTML: :align center
 [[./img/detail-checks.png]]

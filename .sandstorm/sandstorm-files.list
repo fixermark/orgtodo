@@ -13,6 +13,7 @@ opt/app/build/app.js
 opt/app/build/db/Db.js
 opt/app/build/db/Migrate.js
 opt/app/build/handlers.js
+opt/app/build/orgdata/Date.js
 opt/app/build/orgdata/Entry.js
 opt/app/build/orgdata/Parser.js
 opt/app/node_modules/accepts/index.js

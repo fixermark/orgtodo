@@ -1,3 +1,9 @@
+# 0.1.7
+Added icon.
+
+# 0.1.6
+Added editing of deadline in detail view.
+
 # 0.1.5
 Added editing of text body in detail view.
 

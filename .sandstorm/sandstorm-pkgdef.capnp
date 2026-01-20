@@ -19,9 +19,9 @@ const pkgdef :Spk.PackageDefinition = (
 
     appTitle = (defaultText = "OrgTodo"),
 
-    appVersion = 22,  # Increment this for every release.
+    appVersion = 24,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "0.1.5"),
+    appMarketingVersion = (defaultText = "0.1.7"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 
@@ -48,10 +48,10 @@ const pkgdef :Spk.PackageDefinition = (
       # https://github.com/sandstorm-io/sandstorm/blob/master/src/sandstorm/package.capnp
       icons = (
         # Various icons to represent the app in various contexts.
-        #appGrid = (svg = embed "path/to/appgrid-128x128.svg"),
-        #grain = (svg = embed "path/to/grain-24x24.svg"),
-        #market = (svg = embed "path/to/market-150x150.svg"),
-        #marketBig = (svg = embed "path/to/market-big-300x300.svg"),
+        appGrid = (svg = embed "icon.svg"),
+        grain = (svg = embed "icon.svg"),
+        market = (svg = embed "icon.svg"),
+        marketBig = (svg = embed "icon.svg"),
       ),
 
       website = "https://fixermark.com/orgtodo/index.html",

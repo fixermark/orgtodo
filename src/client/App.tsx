@@ -9,7 +9,8 @@ import { WireEntry } from "../orgdata/Wire";
 import { OrgImporter } from "./OrgImporter";
 import { NewTask } from "./NewTask";
 import { ChangeBug } from "./ChangeBug";
-import { DetailView, formatDeadline } from "./DetailView";
+import { DetailView } from "./DetailView";
+import { formatDeadline } from "./ToggleableEditDate";
 import { TodoLine } from "./TodoLine";
 import {
   newTodo,
@@ -17,6 +18,7 @@ import {
   PriorityOperations,
   todoPriorityUpdate,
   todoReplaceBody,
+  todoSetDeadline,
 } from "../orgdata/Updates";
 import "react";
 import { useErrorBoundary } from "react-use-error-boundary";
@@ -140,6 +142,13 @@ export const App = () => {
     [localStore],
   );
 
+  const onSetDeadline = useCallback(
+    (entry: Entry, newDeadline: Date | null) => {
+      localStore.updateTask(todoSetDeadline(entry.summary.id, newDeadline));
+    },
+    [localStore],
+  );
+
   const onReplaceEntries = useCallback(
     (newEntries: string) => localStore.replaceTasks(newEntries),
     [localStore],
@@ -169,6 +178,7 @@ export const App = () => {
           entry={detailEntry}
           onToggleTodo={onToggleTodo}
           onReplaceBody={onReplaceBody}
+	  onSetDeadline={onSetDeadline}
           onDismiss={() => setDetailEntryId(null)}
         />
       )}

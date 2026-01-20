@@ -7,14 +7,14 @@
 
 import { TodoStatus, Entry } from "./Entry";
 import { WireDbFull, WireEntryUnhashed } from "./Wire";
-import { replaceBody, setTodoStatus } from "./Parser";
+import { replaceBody, setTodoStatus, setDeadline } from "./Parser";
 
 import { PriorityOperations as PriorityOperationsReordering } from "./Reordering";
 import { reorderTask } from "./Reordering";
 
 export type PriorityOperations = PriorityOperationsReordering;
 
-export type UpdateType = "newTodo" | "todoValue" | "priority" | "replaceBody";
+export type UpdateType = "newTodo" | "todoValue" | "priority" | "replaceBody" | "setDeadline";
 
 export interface TodoUpdate {
   type: UpdateType;
@@ -52,6 +52,13 @@ export function todoReplaceBody(id: string, newBody: string): TodoUpdate {
   };
 }
 
+export function todoSetDeadline(id: string, newDeadline: Date | null): TodoUpdate {
+  return {
+    type: "setDeadline",
+    properties: { id: id, deadline: newDeadline },
+  };
+}
+
 /** Handle the update by mutating one or more entries. */
 export function handleUpdate(
   update: TodoUpdate,
@@ -82,6 +89,11 @@ export function handleUpdate(
     case "replaceBody":
       entry = store.entries[update.properties.id];
       entry.fulltext = replaceBody(entry.fulltext, update.properties.newBody);
+      return [entry];
+      break;
+    case "setDeadline":
+      entry = store.entries[update.properties.id];
+      entry.fulltext = setDeadline(entry.fulltext, update.properties.deadline);
       return [entry];
       break;
     default:
