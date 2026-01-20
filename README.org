@@ -70,6 +70,3 @@ npm run test
 - Headline nesting not supported
   - Evey headline will be treated as a separate TODO item
   - Nesting relationships are /not/ preserved.
-- Editing an existing todo is rough
-  - TODO / DONE and checkboxes can be edited
-  - editing deadline or body of a TODO can only be done in the *Import from org* dialog.

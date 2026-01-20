@@ -72,8 +72,7 @@ Clicking *Submit* will /replace/ all existing TODOs with the ones you specify.
 
 - Headline nesting isn't maintained on import; each headline, regardless of
   level, is treated as a top-level TODO item and will be rearranged by reordering.
-- org DEADLINE is supported, but the only way to set one is to specify it in
-  the *Import from org* dialog. Also, if the entry lacks a ~:PROPERTIES:~ block, the
+- org DEADLINE is supported, but if the entry lacks a ~:PROPERTIES:~ block, the
   DEADLINE will be interpreted as part of the body.
 - Checkboxes are supported, but simply: OrgTodo interprets ~- [ ]~ as unchecked
   and ~- [anything]~ as checked (though it emits ~- [X]~ for checked when the value
